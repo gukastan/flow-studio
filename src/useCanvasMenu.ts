@@ -94,6 +94,16 @@ export function useCanvasMenu(workspace: ReturnType<typeof useWorkspace>) {
           },
           { label: "속성", action: properties },
           {
+            label: "가로 정렬",
+            disabled: !workspace.canAlign,
+            action: () => workspace.align("horizontal"),
+          },
+          {
+            label: "세로 정렬",
+            disabled: !workspace.canAlign,
+            action: () => workspace.align("vertical"),
+          },
+          {
             label: "색상",
             children: PALETTE.map((color) => ({
               label: color.name,

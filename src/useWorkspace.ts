@@ -1,5 +1,7 @@
 import type { Connection, Edge, ReactFlowInstance } from "@xyflow/react";
 import { useCallback, useRef, useState } from "react";
+import type { Alignment } from "./alignment";
+import { alignSelection, canAlign } from "./alignment";
 import type { FlowNode } from "./CanvasNode";
 import { connectNodes } from "./connections";
 import type { SettingChange } from "./exposedSettings";
@@ -9,11 +11,11 @@ import type { Document, Item, Link, Point } from "./model";
 import { DocumentError } from "./model";
 import { createPlacedNode } from "./placement";
 import { scopeDocument } from "./scopeGraph";
-import { download, readProject } from "./storage";
 import { useCanvasView } from "./useCanvasView";
 import { useClipboard } from "./useClipboard";
 import { useDocument } from "./useDocument";
 import { useNavigation } from "./useNavigation";
+import { useProjectFiles } from "./useProjectFiles";
 import { useShortcuts } from "./useShortcuts";
 export function useWorkspace() {
   const history = useDocument();
@@ -28,7 +30,6 @@ export function useWorkspace() {
   const [drawer, setDrawer] = useState<"outline" | "inspector" | null>(null);
   const [portsGroupId, setPortsGroupId] = useState<string | null>(null);
   const flow = useRef<ReactFlowInstance<FlowNode, Edge> | null>(null);
-  const file = useRef<HTMLInputElement>(null);
   const { fitCanvas, canvasCenter } = useCanvasView(flow);
   const rename = useCallback(
     (id: string, label: string) =>
@@ -143,10 +144,11 @@ export function useWorkspace() {
       zoom: flow.current.getZoom(),
     });
   }
-  const save = useCallback(() => {
-    download(doc);
-    setNotice("프로젝트 파일을 다운로드했습니다. ‘불러오기’로 다시 열 수 있습니다.");
-  }, [doc]);
+  const files = useProjectFiles({ replace, notice: setNotice });
+  function align(direction: Alignment) {
+    commit(alignSelection(doc, selected, direction));
+    fitCanvas();
+  }
   const clipboard = useClipboard({
     doc,
     selected,
@@ -159,7 +161,7 @@ export function useWorkspace() {
   useShortcuts({
     undo,
     redo,
-    save,
+    save: files.save,
     group,
     remove,
     selectAll: () => select(viewDoc.nodes.map((n) => n.id)),
@@ -176,16 +178,6 @@ export function useWorkspace() {
     navigation.navigate(null);
     setPortsGroupId(null);
     fitCanvas();
-  }
-  async function loadFile(chosen: File) {
-    try {
-      replace(await readProject(chosen));
-      setNotice("프로젝트의 위치, 색상, 그룹과 접힌 상태를 불러왔습니다.");
-    } catch (error) {
-      setNotice(
-        error instanceof Error ? `불러오기 실패: ${error.message}` : "파일을 읽을 수 없습니다.",
-      );
-    }
   }
   function patch(patchValue: Partial<Item>) {
     commit((d) => ({
@@ -214,6 +206,9 @@ export function useWorkspace() {
     setEdgeIds,
     importing,
     setImporting,
+    ...files,
+    align,
+    canAlign: canAlign(doc, selected),
     notice,
     setNotice,
     theme,
@@ -221,7 +216,6 @@ export function useWorkspace() {
     drawer,
     setDrawer,
     flow,
-    file,
     fitCanvas,
     rename,
     toggle,
@@ -231,9 +225,7 @@ export function useWorkspace() {
     group,
     subgraph,
     addNode,
-    save,
     replace,
-    loadFile,
     patch,
     edgePatch,
     clipboard,

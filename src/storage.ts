@@ -1,5 +1,6 @@
 import type { Document } from "./model";
 import { DocumentError, parseDocument } from "./model";
+import { extractProject, isPng, projectByteLimit } from "./pngProject";
 import { starter } from "./sample";
 
 const STORAGE_KEY = "flow-studio.document.v1";
@@ -27,16 +28,27 @@ export function persist(doc: Document): string {
   }
 }
 export function download(doc: Document) {
-  const url = URL.createObjectURL(
+  downloadBlob(
     new Blob([JSON.stringify(doc, null, 2)], { type: "application/json" }),
+    `${doc.title}.flow.json`,
   );
+}
+export function downloadBlob(blob: Blob, name: string) {
+  const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;
-  anchor.download = `${doc.title.replace(/[<>:"/\\|?*]/g, "_")}.flow.json`;
+  anchor.download = name.replace(/[<>:"/\\|?*]/g, "_");
   anchor.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 export async function readProject(file: File): Promise<Document> {
-  if (file.size > 5_000_000) throw new DocumentError("5MB 이하의 프로젝트 파일을 선택해 주세요.");
-  return parseDocument(JSON.parse(await file.text()));
+  if (file.size > 40_000_000)
+    throw new DocumentError("40MB 이하의 PNG 또는 JSON 파일을 선택해 주세요.");
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  if (isPng(bytes)) return extractProject(bytes);
+  if (file.size > projectByteLimit)
+    throw new DocumentError("JSON 파일은 5MB 이하로 선택해 주세요.");
+  if (!/\.json$/i.test(file.name))
+    throw new DocumentError("JSON 또는 Flow Studio에서 저장한 PNG 파일을 선택해 주세요.");
+  return parseDocument(JSON.parse(new TextDecoder().decode(bytes)));
 }

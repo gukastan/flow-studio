@@ -30,6 +30,7 @@ ComfyUI 프런트엔드의 원본 라이선스는 [GPL-3.0](https://github.com/C
 | [React Flow — @xyflow/react](https://github.com/xyflow/xyflow) | 12.12.0 | 노드·연결선 캔버스 | MIT |
 | [Mermaid](https://github.com/mermaid-js/mermaid) | 11.17.2 | Mermaid 코드 해석 | MIT |
 | [Dagre](https://github.com/dagrejs/dagre) | 1.1.8 | 그래프 자동 배치 | MIT |
+| [html-to-image](https://github.com/bubkoo/html-to-image) | 1.11.11 | 현재 흐름의 PNG 이미지 생성 | MIT |
 | [Zod](https://github.com/colinhacks/zod) | 4.6.7 | 저장 파일 검증 | MIT |
 | [Lucide React](https://github.com/lucide-icons/lucide) | 0.468.0 | 아이콘 | ISC; Feather 유래 부분의 MIT 고지도 포함 |
 
@@ -37,6 +38,8 @@ ComfyUI 프런트엔드의 원본 라이선스는 [GPL-3.0](https://github.com/C
 [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt)에 수록했습니다.
 이 파일은 배포 준비 시 설치된 패키지의 라이선스 정보와 고지문을 모은 것이므로,
 개발 도구에 대한 항목이 실행용 HTML에 해당 도구가 포함되었다는 뜻은 아닙니다.
+
+PNG 내보내기는 [React Flow 공식 이미지 저장 예제](https://reactflow.dev/examples/misc/download-image)의 권장 버전을 사용합니다. 복원 데이터는 [PNG 표준의 iTXt](https://www.w3.org/TR/png-3/#11iTXt)에 UTF-8 JSON으로 저장합니다.
 
 ## 재배포할 때
 

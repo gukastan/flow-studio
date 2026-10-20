@@ -3,7 +3,6 @@ import {
   Download,
   FolderOpen,
   Group,
-  LayoutGrid,
   Maximize,
   Moon,
   MoreHorizontal,
@@ -16,6 +15,8 @@ import {
   Ungroup,
   Workflow,
 } from "lucide-react";
+import type { Alignment } from "./alignment";
+import { LayoutMenu } from "./LayoutMenu";
 import type { Point } from "./model";
 
 type Props = {
@@ -32,7 +33,9 @@ type Props = {
   onLoad: () => void;
   onAdd: () => void;
   onGroup: () => void;
-  onLayout: () => void;
+  canAlign: boolean;
+  onAlign: (direction: Alignment) => void;
+  onLayout: (direction: "LR" | "TB") => void;
   onFit: () => void;
   onUndo: () => void;
   onRedo: () => void;
@@ -76,7 +79,7 @@ export function Toolbar(p: Props) {
           <button
             type="button"
             onClick={p.onLoad}
-            title="프로젝트 JSON 파일 불러오기"
+            title="프로젝트 JSON 또는 Flow Studio PNG 불러오기"
             aria-label="불러오기"
           >
             <FolderOpen size={16} />
@@ -128,10 +131,7 @@ export function Toolbar(p: Props) {
         >
           <MoreHorizontal size={17} />
         </button>
-        <button type="button" onClick={p.onLayout}>
-          <LayoutGrid size={16} />
-          자동 정렬
-        </button>
+        <LayoutMenu canAlign={p.canAlign} onAlign={p.onAlign} onLayout={p.onLayout} />
         <span className="toolbar-spacer" />
         <button
           type="button"

@@ -18,6 +18,7 @@ import { GraphEdge } from "./GraphEdge";
 import type { Document, Item, Point } from "./model";
 import { isSubgraph } from "./model";
 import { useCanvasGraph } from "./useCanvasGraph";
+import { useFileDrop } from "./useFileDrop";
 
 const nodeTypes = { card: CanvasNode };
 const edgeTypes = { flow: GraphEdge };
@@ -45,8 +46,10 @@ type Props = {
   onReady: (instance: ReactFlowInstance<FlowNode, Edge>) => void;
   onMenu: (request: MenuRequest) => void;
   onCloseMenu: () => void;
+  onFile: (file: File) => void;
 };
 export function Canvas(props: Props) {
+  const fileDrop = useFileDrop(props.onFile);
   const { doc, selected, onSelect, onMove } = props;
   const { nodes, edges, boundaries, onMeasurements } = useCanvasGraph(props);
   function onNodesChange(changes: NodeChange<FlowNode>[]) {
@@ -96,6 +99,9 @@ export function Canvas(props: Props) {
       className="canvas-region"
       aria-label="흐름도 편집 캔버스"
       tabIndex={-1}
+      onDragOver={fileDrop.onDragOver}
+      onDragLeave={fileDrop.onDragLeave}
+      onDrop={fileDrop.onDrop}
       onPointerDownCapture={(event) => {
         if (event.button !== 0) return;
         const edge =
@@ -128,6 +134,12 @@ export function Canvas(props: Props) {
         });
       }}
     >
+      {fileDrop.dropping && (
+        <div className="file-drop-overlay" role="status">
+          <strong>파일을 놓아 흐름도 열기</strong>
+          <span>JSON 또는 Flow Studio PNG · 현재 캔버스를 교체하며 되돌릴 수 있습니다.</span>
+        </div>
+      )}
       {props.children}
       <ReactFlow<FlowNode, Edge>
         nodes={nodes}

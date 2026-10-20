@@ -63,6 +63,7 @@ function Harness() {
       onReady={vi.fn()}
       onMenu={vi.fn()}
       onCloseMenu={vi.fn()}
+      onFile={vi.fn()}
     >
       <button type="button" id="rerender" onClick={() => setEdgeIds([])}>
         Change selection

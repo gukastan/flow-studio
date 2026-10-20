@@ -13,6 +13,53 @@
   background: #020617b3;
   backdrop-filter: blur(4px);
 }
+.save-dialog {
+  width: min(560px, calc(100% - 32px));
+}
+.save-options {
+  display: grid;
+  gap: 12px;
+  padding: 0 24px;
+}
+.app .save-option {
+  padding: 16px;
+  gap: 16px;
+  text-align: left;
+  align-items: center;
+}
+.save-option > svg {
+  flex-shrink: 0;
+  color: var(--accent);
+}
+.save-option strong {
+  display: block;
+  font-size: 16px;
+}
+.save-option small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 4px;
+  line-height: 1.5;
+}
+.file-drop-overlay {
+  position: absolute;
+  inset: 24px;
+  z-index: 100;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  gap: 12px;
+  pointer-events: none;
+  border-radius: 16px;
+  color: var(--text);
+  background: var(--elevated);
+  box-shadow: var(--shadow);
+}
+.file-drop-overlay span {
+  color: var(--muted);
+  font-size: 13px;
+}
 .dialog-heading {
   display: flex;
   gap: 16px;

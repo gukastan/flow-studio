@@ -33,6 +33,9 @@ Below 1100px outline becomes a drawer. Below 700px inspector also becomes a draw
 Node width 224px, height 88px. Group padding 32px, title allowance 48px.
 
 ## 5. Components
+- Layout menu: existing ContextMenu opened from the toolbar's "정렬" button. Two selection actions place sibling roots in one horizontal/vertical line with 64px gaps and centered cross-axis alignment; two canvas actions run LR/TB automatic layout in the current scope. Selection actions require at least two sibling roots.
+- Save dialog: existing native Modal, 560px maximum width. Two full-width format buttons, 16px padding, 12px gap, 16px heading and 12px helper. JSON preserves the project; PNG shows the current scope with the full project embedded. Progress disables actions; errors remain in the dialog. No new colors or motion.
+- File drop: the canvas accepts one JSON or Flow Studio PNG, using the same validation and undoable replacement as the file picker. A centered elevated overlay names the accepted formats and replacement behavior. File drag events must not interfere with node drags.
 - ToolButton: 36px desktop / 44px touch minimum, icon with visible text or accessible label. Neutral rest, tonal hover, pressed transform, visible focus, disabled opacity.
 - Panel: neutral separator, fixed header, independently scrollable body. Stack layout.
 - Field: visible label, 40px input, helper/error below; focus outline. Native select, text and color controls.

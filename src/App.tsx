@@ -8,6 +8,7 @@ import { Inspector } from "./Inspector";
 import { autoLayout } from "./layout";
 import { isSubgraph } from "./model";
 import { Outline } from "./Outline";
+import { ProjectFiles } from "./ProjectFiles";
 import { StatusBar } from "./StatusBar";
 import { SubgraphPanel } from "./SubgraphPanel";
 import { Toolbar } from "./Toolbar";
@@ -81,8 +82,10 @@ export function App() {
                 : { kind: "pane" },
           })
         }
-        onLayout={() => {
-          commit(autoLayout(doc, "LR", navigation.scope?.id ?? null));
+        canAlign={workspace.canAlign}
+        onAlign={workspace.align}
+        onLayout={(direction) => {
+          commit(autoLayout(doc, direction, navigation.scope?.id ?? null));
           fitCanvas();
         }}
         onFit={fitCanvas}
@@ -151,6 +154,7 @@ export function App() {
           }}
           onMenu={menu.open}
           onCloseMenu={menu.close}
+          onFile={(chosen) => void loadFile(chosen)}
         >
           <CanvasBreadcrumb
             path={navigation.path}
@@ -218,18 +222,7 @@ export function App() {
           </button>
         </div>
       )}
-      <input
-        ref={file}
-        type="file"
-        accept=".json,.flow.json,application/json"
-        className="sr-only"
-        aria-label="프로젝트 파일 선택"
-        onChange={(e) => {
-          const chosen = e.target.files?.[0];
-          if (chosen) void loadFile(chosen);
-          e.target.value = "";
-        }}
-      />
+      <ProjectFiles {...workspace} onSaved={setNotice} />
       {importing && (
         <ImportDialog
           onClose={() => setImporting(false)}
