@@ -2,7 +2,7 @@ import { CheckCircle2, X } from "lucide-react";
 import { Canvas } from "./Canvas";
 import { CanvasBreadcrumb } from "./CanvasBreadcrumb";
 import { ContextMenu } from "./ContextMenu";
-import { fitGroups, moveItems, selectionRoots, visibleRepresentative } from "./graph";
+import { fitGroups, selectionRoots, visibleRepresentative } from "./graph";
 import { ImportDialog } from "./ImportDialog";
 import { Inspector } from "./Inspector";
 import { autoLayout } from "./layout";
@@ -11,6 +11,7 @@ import { Outline } from "./Outline";
 import { ProjectFiles } from "./ProjectFiles";
 import { StatusBar } from "./StatusBar";
 import { SubgraphPanel } from "./SubgraphPanel";
+import { moveScopeItems } from "./scopeGraph";
 import { Toolbar } from "./Toolbar";
 import { useCanvasMenu } from "./useCanvasMenu";
 import { useWorkspace } from "./useWorkspace";
@@ -148,7 +149,9 @@ export function App() {
           onRename={rename}
           onToggle={toggle}
           onConnect={(c) => connect(c.source, c.target, c)}
-          onMove={(positions) => history.drag((d) => moveItems(d, positions))}
+          onMove={(positions) =>
+            history.drag((d) => moveScopeItems(d, positions, navigation.scope?.id ?? null))
+          }
           onDragStart={history.startDrag}
           onDragEnd={history.endDrag}
           onReady={(instance) => {

@@ -1,6 +1,6 @@
 import { endpointHandle } from "./connectionHandles";
-import { projectGraph, visibleRepresentative } from "./graph";
-import type { Document, Item, Port } from "./model";
+import { moveItems, projectGraph, visibleRepresentative } from "./graph";
+import type { Document, Item, Point, Port } from "./model";
 import { ancestors, descendants, isSubgraph } from "./model";
 
 const BOUNDARY_WIDTH = 224;
@@ -25,6 +25,33 @@ export function boundaryId(doc: Document, scope: string, direction: Port["direct
   return id;
 }
 
+export function moveScopeItems(
+  doc: Document,
+  positions: ReadonlyMap<string, Point>,
+  scopeId: string | null,
+): Document {
+  const moved = moveItems(doc, positions);
+  const scope = moved.nodes.find((n) => n.id === scopeId);
+  if (!scope || !isSubgraph(scope)) return moved;
+  const offsets = { ...scope.boundaryOffsets };
+  let changed = false;
+  for (const direction of ["input", "output"] as const) {
+    const position = positions.get(boundaryId(doc, scope.id, direction));
+    if (!position) continue;
+    offsets[direction] = {
+      x: position.x - scope.position.x,
+      y: position.y - scope.position.y,
+    };
+    changed = true;
+  }
+  return changed
+    ? {
+        ...moved,
+        nodes: moved.nodes.map((n) => (n.id === scope.id ? { ...n, boundaryOffsets: offsets } : n)),
+      }
+    : moved;
+}
+
 export function scopeGraph(doc: Document, scope: Item | null) {
   const graph = projectGraph(doc, scope?.id ?? null);
   const boundaries = new Map<string, Port["direction"]>();
@@ -41,6 +68,7 @@ export function scopeGraph(doc: Document, scope: Item | null) {
   for (const direction of ["input", "output"] as const) {
     const id = boundaryId(doc, scope.id, direction);
     const ports = (scope.ports ?? []).filter((p) => p.direction === direction);
+    const offset = scope.boundaryOffsets?.[direction];
     boundaries.set(id, direction);
     nodes.push({
       ...scope,
@@ -53,7 +81,9 @@ export function scopeGraph(doc: Document, scope: Item | null) {
       label: direction === "input" ? "서브그래프 입력" : "서브그래프 출력",
       width: BOUNDARY_WIDTH,
       height: Math.max(116, 82 + ports.length * 28),
-      position: { x: direction === "input" ? left : right, y: top },
+      position: offset
+        ? { x: scope.position.x + offset.x, y: scope.position.y + offset.y }
+        : { x: direction === "input" ? left : right, y: top },
     });
   }
   const slots = new Map<string, string>();

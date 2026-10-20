@@ -29,6 +29,7 @@ function Harness({ inner = false }: { readonly inner?: boolean }) {
         id={node.id}
         data-drag-handle={node.dragHandle}
         data-draggable={node.draggable}
+        data-selectable={node.selectable}
       >
         <div className="graph-card subgraph-card">
           <SubgraphCard
@@ -81,7 +82,7 @@ it("allows a converted subgraph to be dragged from its title, slot labels and em
   }
 });
 
-it("keeps the inner input and output displays fixed and non-draggable", () => {
+it("lets both boundary cards move from their body without becoming selectable graph nodes", () => {
   act(() =>
     root.render(
       <ReactFlowProvider>
@@ -91,5 +92,13 @@ it("keeps the inner input and output displays fixed and non-draggable", () => {
   );
   const boundaries = document.querySelectorAll("[data-draggable]");
   expect(boundaries).toHaveLength(2);
-  for (const node of boundaries) expect(node.getAttribute("data-draggable")).toBe("false");
+  for (const node of boundaries) {
+    const dragHandle = node.getAttribute("data-drag-handle");
+    if (!dragHandle) throw new Error("Expected boundary drag handle");
+    expect(node.getAttribute("data-draggable")).toBe("true");
+    expect(node.getAttribute("data-selectable")).toBe("false");
+    for (const selector of [".subgraph-name", ".slot-label", ".subgraph-slots"])
+      expect(node.querySelector(selector)?.closest(dragHandle)).toBeTruthy();
+    expect(node.querySelector(".react-flow__handle")?.closest(".nodrag")).toBeTruthy();
+  }
 });

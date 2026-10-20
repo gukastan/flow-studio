@@ -40,6 +40,7 @@ const item = z.object({
   height: z.number().min(60).max(100000),
   shape: nodeSettingsSchema.shape.shape,
   subgraph: z.boolean().optional(),
+  boundaryOffsets: z.object({ input: point.optional(), output: point.optional() }).optional(),
   ports: z.array(port).max(2000).optional(),
   exposedSettings: z.array(exposedSetting).max(3000).optional(),
 });
@@ -104,6 +105,8 @@ export function parseDocument(value: unknown): Document {
   for (const node of doc.nodes) {
     if (node.subgraph && node.kind !== "group")
       throw new DocumentError("서브그래프는 내부 노드를 담는 그룹이어야 합니다.");
+    if (node.boundaryOffsets && !isSubgraph(node))
+      throw new DocumentError("입력·출력 박스 위치는 서브그래프에만 지정할 수 있습니다.");
     const ports = node.ports ?? [];
     if (ports.length && !isSubgraph(node))
       throw new DocumentError("입력·출력은 서브그래프에만 지정할 수 있습니다.");

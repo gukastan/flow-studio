@@ -54,10 +54,10 @@ export function useCanvasGraph(options: Options) {
         ...(measured ? { measured } : {}),
         selected: selected.includes(item.id),
         selectable: !boundary,
-        draggable: !boundary,
+        draggable: true,
         zIndex: frame ? 1 + ancestors(doc, item.id).length : 10,
         style: { pointerEvents: frame ? "none" : "auto" },
-        dragHandle: isSubgraph(item) ? ".subgraph-card" : ".card-header",
+        dragHandle: boundary || isSubgraph(item) ? ".subgraph-card" : ".card-header",
         data: {
           item,
           count: descendants(doc, item.id).size,

@@ -39,6 +39,17 @@ describe("editable PNG", () => {
   it("round trips Korean labels, coordinates, colors, subgraphs, ports and connection sides", () => {
     expect(extractProject(embedProject(png, doc))).toEqual(doc);
   });
+  it("round trips manually positioned subgraph boundary cards", () => {
+    const placed = {
+      ...doc,
+      nodes: doc.nodes.map((n) =>
+        n.subgraph
+          ? { ...n, boundaryOffsets: { input: { x: -950, y: 140 }, output: { x: 1600, y: -80 } } }
+          : n,
+      ),
+    };
+    expect(extractProject(embedProject(png, placed))).toEqual(placed);
+  });
   it("preserves image data and replaces previous metadata instead of appending duplicate projects", () => {
     const first = embedProject(png, doc);
     const second = embedProject(first, { ...doc, title: "새 이름" });
