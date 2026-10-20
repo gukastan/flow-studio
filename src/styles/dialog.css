@@ -1,0 +1,137 @@
+.import-dialog {
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 0;
+  width: min(760px, calc(100% - 32px));
+  max-height: calc(100dvh - 48px);
+  overflow: auto;
+  box-shadow: 0 24px 80px #00000066;
+}
+.import-dialog::backdrop {
+  background: #020617b3;
+  backdrop-filter: blur(4px);
+}
+.dialog-heading {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 24px;
+}
+.dialog-heading h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 650;
+}
+.dialog-heading p {
+  color: var(--muted);
+  margin: 4px 0 0;
+  font-size: 13px;
+}
+.dialog-heading > button {
+  margin-inline-start: auto;
+}
+.dialog-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  background: var(--elevated);
+  border-radius: 12px;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.editor-toolbar {
+  padding: 8px 24px;
+  border-block: 1px solid var(--border);
+  background: var(--canvas);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.editor-toolbar span {
+  color: var(--muted);
+  font:
+    10px ui-monospace,
+    monospace;
+  letter-spacing: 1px;
+}
+.app .editor-toolbar button {
+  font-size: 11px;
+  min-height: 28px;
+  padding: 4px 8px;
+}
+.app .code-editor {
+  width: 100%;
+  height: 360px;
+  resize: vertical;
+  border: 0;
+  border-radius: 0;
+  padding: 24px;
+  color: var(--text);
+  background: var(--canvas);
+  font:
+    12px / 1.9 ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    monospace;
+  tab-size: 4;
+}
+.import-note {
+  padding: 16px 24px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.8;
+}
+.dialog-footer {
+  padding: 16px 24px 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.error-message {
+  color: #fb7185;
+  background: var(--canvas);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  margin: 16px 24px 0;
+  padding: 12px;
+  border-radius: 8px;
+  max-height: 160px;
+  overflow: auto;
+}
+@media (max-width: 700px) {
+  .react-flow__minimap {
+    display: none;
+  }
+  .canvas-hint {
+    bottom: 16px;
+    font-size: 9px;
+    white-space: normal;
+    width: 60%;
+    text-align: center;
+  }
+  .dialog-heading {
+    padding: 16px;
+    gap: 12px;
+  }
+  .dialog-heading h2 {
+    font-size: 16px;
+  }
+  .dialog-heading p {
+    font-size: 11px;
+  }
+  .dialog-icon {
+    display: none;
+  }
+  .app .code-editor {
+    height: 280px;
+    padding: 16px;
+    font-size: 11px;
+  }
+  .group-frame .node-meta {
+    display: none;
+  }
+}

@@ -1,0 +1,153 @@
+.canvas-region {
+  display: flex;
+  flex-direction: column;
+}
+.canvas-region > .react-flow {
+  flex: 1;
+  min-height: 0;
+}
+.canvas-navigation {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  z-index: 20;
+}
+.canvas-breadcrumb {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  overflow-x: auto;
+  min-width: 0;
+}
+.breadcrumb-step {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: var(--muted);
+}
+.canvas-breadcrumb button {
+  border-color: transparent;
+  background: transparent;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.canvas-breadcrumb [aria-current="page"] {
+  background: var(--elevated);
+}
+.subgraph-card .subgraph-header {
+  height: 60px;
+  padding: 10px 14px;
+}
+.subgraph-header .node-title-row {
+  margin-top: 4px;
+}
+.subgraph-name {
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.slot-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  height: 28px;
+}
+.slot-label {
+  font-size: 11px;
+  padding-inline: 12px;
+  line-height: 28px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.slot-left {
+  grid-column: 1;
+  text-align: left;
+}
+.slot-right {
+  grid-column: 2;
+  text-align: right;
+}
+.slot-add,
+.slot-empty {
+  color: var(--muted);
+}
+.slot-add svg {
+  vertical-align: middle;
+  margin-right: 4px;
+}
+.slot-empty {
+  font-size: 11px;
+  margin: 12px;
+}
+.port-section {
+  border-top: 1px solid var(--border);
+  margin-top: 24px;
+  padding-top: 16px;
+}
+.port-section h3 {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+}
+.port-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  margin-block: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.port-editor .field {
+  margin: 0;
+}
+.port-group-name {
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+.inspector-body > .muted {
+  font-size: 12px;
+  line-height: 1.7;
+}
+.exposed-controls {
+  padding-inline: 12px;
+}
+.exposed-control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.exposed-control > span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.app .exposed-control input,
+.app .exposed-control select {
+  width: 100%;
+  min-width: 0;
+  height: 36px;
+  padding: 4px 6px;
+  font-size: 11px;
+}
+@media (max-width: 700px) {
+  .canvas-navigation {
+    padding: 4px;
+    gap: 4px;
+  }
+  .canvas-breadcrumb button {
+    max-width: 140px;
+  }
+}

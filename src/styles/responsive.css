@@ -1,0 +1,112 @@
+@media (max-width: 1100px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr) 260px;
+  }
+  .outline {
+    display: none;
+  }
+  .app .mobile-outline {
+    display: inline-flex;
+  }
+  .show-outline .outline {
+    display: flex;
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 260px;
+    z-index: 30;
+    box-shadow: var(--shadow);
+  }
+  .show-outline .drawer-scrim {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: 29;
+    background: #00000066;
+    border: 0;
+    border-radius: 0;
+  }
+  .app-header {
+    gap: 16px;
+    padding-inline: 16px;
+  }
+}
+@media (max-width: 700px) {
+  .app {
+    grid-template-rows: 64px 56px minmax(0, 1fr) 32px;
+  }
+  .brand {
+    font-size: 20px;
+    gap: 8px;
+  }
+  .brand svg {
+    width: 20px;
+  }
+  .header-divider,
+  .app .project-title,
+  .header-actions button span {
+    display: none;
+  }
+  .app-header {
+    gap: 8px;
+    padding-inline: 12px;
+  }
+  .app button {
+    min-height: 44px;
+  }
+  .toolbar {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-block: 4px;
+    padding-inline: 8px;
+    gap: 4px;
+  }
+  .toolbar button {
+    flex-shrink: 0;
+  }
+  .toolbar-spacer {
+    min-width: 8px;
+  }
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .inspector {
+    display: none;
+  }
+  .app .mobile-inspector {
+    display: inline-flex;
+  }
+  .show-inspector .inspector {
+    display: flex;
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: min(300px, 85vw);
+    z-index: 30;
+  }
+  .show-inspector .drawer-scrim {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: 29;
+    background: #00000066;
+    border: 0;
+    border-radius: 0;
+  }
+  .status-bar {
+    gap: 12px;
+    padding-inline: 12px;
+    font-size: 9px;
+  }
+  .status-bar .status-right {
+    display: none;
+  }
+  .app .swatch {
+    min-height: 32px;
+    width: 32px;
+    height: 32px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app button {
+    transition-duration: 0.01ms;
+  }
+}

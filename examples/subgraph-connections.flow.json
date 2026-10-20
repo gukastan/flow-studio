@@ -1,0 +1,114 @@
+{
+  "format": "flow-studio",
+  "version": 1,
+  "title": "서브그래프 연결 예제",
+  "nodes": [
+    {
+      "id": "L",
+      "kind": "node",
+      "label": "이미지 로드",
+      "color": "#fbbf24",
+      "position": {
+        "x": 0,
+        "y": 76
+      },
+      "parent": "g_68746a0d",
+      "collapsed": false,
+      "width": 224,
+      "height": 88,
+      "shape": "process"
+    },
+    {
+      "id": "V",
+      "kind": "node",
+      "label": "VAE 인코드",
+      "color": "#22d3ee",
+      "position": {
+        "x": 344,
+        "y": 0
+      },
+      "parent": "g_68746a0d",
+      "collapsed": false,
+      "width": 224,
+      "height": 88,
+      "shape": "process"
+    },
+    {
+      "id": "P",
+      "kind": "node",
+      "label": "이미지 미리보기",
+      "color": "#22d3ee",
+      "position": {
+        "x": 344,
+        "y": 152
+      },
+      "parent": null,
+      "collapsed": false,
+      "width": 224,
+      "height": 88,
+      "shape": "process"
+    },
+    {
+      "id": "g_68746a0d",
+      "kind": "group",
+      "label": "새 서브그래프",
+      "color": "#a78bfa",
+      "position": {
+        "x": -32,
+        "y": -56
+      },
+      "parent": null,
+      "collapsed": true,
+      "width": 224,
+      "height": 248,
+      "shape": "process",
+      "subgraph": true,
+      "ports": [
+        {
+          "id": "p_58158e21-9f2a-4a1b-bd4e-14204bbc30e8",
+          "direction": "output",
+          "nodeId": "L",
+          "label": "이미지"
+        }
+      ],
+      "exposedSettings": [
+        {
+          "nodeId": "L",
+          "property": "label",
+          "id": "s_389c4653-14e8-4847-b899-e56082bf1441",
+          "label": "이름"
+        },
+        {
+          "nodeId": "L",
+          "property": "color",
+          "id": "s_10b36477-5207-4ff1-8a44-2ad3e816af9d",
+          "label": "색상"
+        },
+        {
+          "nodeId": "L",
+          "property": "shape",
+          "id": "s_26ba3d4a-ee86-4f2c-855c-a472bb07208c",
+          "label": "유형"
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_0",
+      "source": "L",
+      "target": "V",
+      "label": "",
+      "dashed": false,
+      "arrow": true
+    },
+    {
+      "id": "e_794f51b4-d566-4f3e-ab0b-8cf2f476624f",
+      "source": "L",
+      "target": "P",
+      "label": "",
+      "dashed": false,
+      "arrow": true
+    }
+  ]
+}

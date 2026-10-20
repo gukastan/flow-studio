@@ -1,0 +1,138 @@
+* {
+  box-sizing: border-box;
+}
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  font-synthesis: none;
+}
+body {
+  margin: 0;
+}
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+button,
+a,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.app {
+  --canvas: #020617;
+  --panel: #0f172a;
+  --elevated: #172238;
+  --border: #263247;
+  --text: #f8fafc;
+  --muted: #94a3b8;
+  --faint: #64748b;
+  --accent: #22d3ee;
+  --edge: #94a3b8;
+  --grid: #263247;
+  --minimap-mask: #020617aa;
+  --radius: 8px;
+  --shadow: 0 8px 24px #00000026;
+  background: var(--canvas);
+  color: var(--text);
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: 64px 56px minmax(0, 1fr) 32px;
+  color-scheme: dark;
+  font-size: 14px;
+  line-height: 1.5;
+  overflow: hidden;
+}
+.app[data-theme="light"] {
+  --canvas: #f1f5f9;
+  --panel: #ffffff;
+  --elevated: #e8eef5;
+  --border: #cbd5e1;
+  --text: #0f172a;
+  --muted: #475569;
+  --faint: #64748b;
+  --accent: #0e7490;
+  --edge: #64748b;
+  --grid: #cbd5e1;
+  --minimap-mask: #f1f5f9bb;
+  color-scheme: light;
+}
+.app button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  min-height: 36px;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  white-space: nowrap;
+  transition:
+    opacity 140ms,
+    transform 140ms;
+}
+.app button:hover:not(:disabled) {
+  background: var(--elevated);
+}
+.app button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.app .primary {
+  color: #020617;
+  background: #22d3ee;
+  border-color: transparent;
+  font-weight: 650;
+}
+.app .primary:hover:not(:disabled) {
+  background: #67e8f9;
+}
+.app .icon-button {
+  width: 36px;
+  padding: 8px;
+  flex-shrink: 0;
+  border-color: transparent;
+  background: transparent;
+}
+.app .tiny {
+  width: 24px;
+  min-height: 24px;
+  padding: 4px;
+}
+.app input:not([type="checkbox"], [type="color"]),
+.app textarea,
+.app select {
+  color: var(--text);
+  background: var(--canvas);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  min-width: 0;
+  line-height: 1.6;
+}
+.app input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.app input::placeholder,
+.app textarea::placeholder {
+  color: var(--faint);
+}
