@@ -6,6 +6,7 @@ import type { SettingChange } from "./exposedSettings";
 import { resolveSettings } from "./exposedSettings";
 import type { Document, Item } from "./model";
 import { ancestors, descendants, isSubgraph } from "./model";
+import type { RouteBox } from "./sameSideRoute";
 import { scopeGraph } from "./scopeGraph";
 
 type Options = {
@@ -71,6 +72,19 @@ export function useCanvasGraph(options: Options) {
           `${boundary ? "" : isSubgraph(item) ? "서브그래프" : item.kind === "group" ? "그룹" : "노드"} ${item.label}`.trim(),
       };
     });
+  const boxes: RouteBox[] = nodes
+    .filter(
+      (node) =>
+        node.data.item.kind !== "group" || node.data.item.collapsed || isSubgraph(node.data.item),
+    )
+    .map((node) => ({
+      id: node.id,
+      x: node.position.x,
+      y: node.position.y,
+      width: node.measured?.width ?? node.width ?? 224,
+      height: node.measured?.height ?? node.height ?? 88,
+    }));
+  const selectedEdges = new Set(edgeIds);
   const edges: Edge[] = graph.edges.map((edge, index) => ({
     id: edge.id,
     source: edge.source,
@@ -80,6 +94,7 @@ export function useCanvasGraph(options: Options) {
     label: edge.label,
     type: "flow",
     data: {
+      boxes,
       lane: graph.edges
         .slice(0, index)
         .filter(
@@ -90,10 +105,19 @@ export function useCanvasGraph(options: Options) {
             e.targetHandle === edge.targetHandle,
         ).length,
     },
-    selected: edgeIds.includes(edge.id),
-    ...(edge.arrow ? { markerEnd: { type: MarkerType.ArrowClosed, color: "var(--edge)" } } : {}),
+    selected: selectedEdges.has(edge.id),
+    ...(edge.arrow
+      ? {
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            color: selectedEdges.has(edge.id) ? "var(--accent)" : "var(--edge-arrow)",
+            width: 20,
+            height: 20,
+          },
+        }
+      : {}),
     style: {
-      strokeWidth: edgeIds.includes(edge.id) ? 3 : 1.7,
+      strokeWidth: selectedEdges.has(edge.id) ? 3 : 2.2,
       strokeDasharray: edge.dashed ? "6 5" : undefined,
     },
     interactionWidth: 24,

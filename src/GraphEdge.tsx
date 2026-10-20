@@ -1,7 +1,9 @@
 import type { Edge, EdgeProps } from "@xyflow/react";
 import { BaseEdge, getBezierPath, Position } from "@xyflow/react";
+import type { EdgeRoutingData } from "./sameSideRoute";
+import { sameSideRoute } from "./sameSideRoute";
 
-export function GraphEdge(props: EdgeProps<Edge<{ lane: number }>>) {
+export function GraphEdge(props: EdgeProps<Edge<EdgeRoutingData>>) {
   const lane = props.data?.lane ?? 0;
   const vertical =
     props.sourcePosition === Position.Bottom && props.targetPosition === Position.Top;
@@ -23,15 +25,25 @@ export function GraphEdge(props: EdgeProps<Edge<{ lane: number }>>) {
       : `M ${sx} ${sy} C ${sx + reach} ${sy}, ${sx + reach} ${top}, ${(sx + tx) / 2} ${top}
          S ${tx - reach} ${ty}, ${tx} ${ty}`
     : normal;
+  const sameSide =
+    props.sourcePosition === props.targetPosition
+      ? sameSideRoute({
+          source: { id: props.source, x: props.sourceX, y: props.sourceY },
+          target: { id: props.target, x: props.targetX, y: props.targetY },
+          side: props.sourcePosition,
+          boxes: props.data?.boxes ?? [],
+          lane,
+        })
+      : null;
   return (
     <BaseEdge
       id={props.id}
-      path={path}
+      path={sameSide?.path ?? path}
       {...(props.markerEnd ? { markerEnd: props.markerEnd } : {})}
       {...(props.style ? { style: props.style } : {})}
       label={props.label}
-      labelX={outside ? (vertical ? -top : (sx + tx) / 2) : normalX}
-      labelY={outside ? (vertical ? (sx + tx) / 2 : top) : normalY}
+      labelX={sameSide?.labelX ?? (outside ? (vertical ? -top : (sx + tx) / 2) : normalX)}
+      labelY={sameSide?.labelY ?? (outside ? (vertical ? (sx + tx) / 2 : top) : normalY)}
       labelStyle={{ fill: "var(--text)", fontSize: 12 }}
       labelBgStyle={{ fill: "var(--canvas)", fillOpacity: 0.96 }}
       labelBgPadding={[8, 5]}

@@ -9,6 +9,7 @@
   background: var(--canvas);
   --xy-background-color: var(--canvas);
   --xy-background-color-default: var(--canvas);
+  --xy-edge-stroke-selected: var(--accent);
 }
 .react-flow__background {
   background: var(--canvas);

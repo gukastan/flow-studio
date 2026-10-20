@@ -41,7 +41,8 @@ select {
   --muted: #94a3b8;
   --faint: #64748b;
   --accent: #22d3ee;
-  --edge: #94a3b8;
+  --edge: #cbd5e1;
+  --edge-arrow: #f8fafc;
   --grid: #263247;
   --minimap-mask: #020617aa;
   --radius: 8px;
@@ -66,6 +67,7 @@ select {
   --faint: #64748b;
   --accent: #0e7490;
   --edge: #64748b;
+  --edge-arrow: #334155;
   --grid: #cbd5e1;
   --minimap-mask: #f1f5f9bb;
   color-scheme: light;
