@@ -1,7 +1,7 @@
 import type { Connection, Edge, ReactFlowInstance } from "@xyflow/react";
 import { useCallback, useRef, useState } from "react";
 import type { Alignment } from "./alignment";
-import { alignSelection, canAlign } from "./alignment";
+import { alignSelection, canAlign, canDistribute, distributeSelection } from "./alignment";
 import type { FlowNode } from "./CanvasNode";
 import { connectNodes } from "./connections";
 import type { SettingChange } from "./exposedSettings";
@@ -209,6 +209,11 @@ export function useWorkspace() {
     ...files,
     align,
     canAlign: canAlign(doc, selected),
+    canDistribute: canDistribute(doc, selected),
+    distribute: (direction: Alignment) => {
+      commit(distributeSelection(doc, selected, direction));
+      fitCanvas();
+    },
     notice,
     setNotice,
     theme,

@@ -34,7 +34,9 @@ type Props = {
   onAdd: () => void;
   onGroup: () => void;
   canAlign: boolean;
+  canDistribute: boolean;
   onAlign: (direction: Alignment) => void;
+  onDistribute: (direction: Alignment) => void;
   onLayout: (direction: "LR" | "TB") => void;
   onFit: () => void;
   onUndo: () => void;
@@ -131,7 +133,13 @@ export function Toolbar(p: Props) {
         >
           <MoreHorizontal size={17} />
         </button>
-        <LayoutMenu canAlign={p.canAlign} onAlign={p.onAlign} onLayout={p.onLayout} />
+        <LayoutMenu
+          canAlign={p.canAlign}
+          canDistribute={p.canDistribute}
+          onAlign={p.onAlign}
+          onDistribute={p.onDistribute}
+          onLayout={p.onLayout}
+        />
         <span className="toolbar-spacer" />
         <button
           type="button"

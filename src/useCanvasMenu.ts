@@ -94,14 +94,30 @@ export function useCanvasMenu(workspace: ReturnType<typeof useWorkspace>) {
           },
           { label: "속성", action: properties },
           {
-            label: "가로 정렬",
-            disabled: !workspace.canAlign,
-            action: () => workspace.align("horizontal"),
-          },
-          {
-            label: "세로 정렬",
-            disabled: !workspace.canAlign,
-            action: () => workspace.align("vertical"),
+            label: "정렬",
+            children: [
+              {
+                label: "가로 정렬",
+                disabled: !workspace.canAlign,
+                action: () => workspace.align("horizontal"),
+              },
+              {
+                label: "세로 정렬",
+                disabled: !workspace.canAlign,
+                action: () => workspace.align("vertical"),
+              },
+              {
+                label: "가로 간격 정렬",
+                disabled: !workspace.canDistribute,
+                action: () => workspace.distribute("horizontal"),
+                separator: true,
+              },
+              {
+                label: "세로 간격 정렬",
+                disabled: !workspace.canDistribute,
+                action: () => workspace.distribute("vertical"),
+              },
+            ],
           },
           {
             label: "색상",

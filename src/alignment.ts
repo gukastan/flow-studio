@@ -8,6 +8,18 @@ export function canAlign(doc: Document, ids: readonly string[]): boolean {
   return roots.length > 1 && roots.every((node) => node.parent === roots[0]?.parent);
 }
 
+export function canDistribute(doc: Document, ids: readonly string[]): boolean {
+  return selectionRoots(doc, ids).length > 2 && canAlign(doc, ids);
+}
+
+function visibleRoots(doc: Document, ids: readonly string[]) {
+  return selectionRoots(doc, ids).map((node) => ({
+    ...node,
+    width: node.collapsed && !isSubgraph(node) ? 224 : node.width,
+    height: node.collapsed && !isSubgraph(node) ? 88 : node.height,
+  }));
+}
+
 export function alignSelection(
   doc: Document,
   ids: readonly string[],
@@ -15,31 +27,42 @@ export function alignSelection(
 ): Document {
   if (!canAlign(doc, ids)) return doc;
   const horizontal = direction === "horizontal";
-  const roots = selectionRoots(doc, ids)
-    .map((node) => ({
-      ...node,
-      width: node.collapsed && !isSubgraph(node) ? 224 : node.width,
-      height: node.collapsed && !isSubgraph(node) ? 88 : node.height,
-    }))
-    .sort((a, b) =>
-      horizontal
-        ? a.position.x - b.position.x || a.position.y - b.position.y
-        : a.position.y - b.position.y || a.position.x - b.position.x,
-    );
+  const roots = visibleRoots(doc, ids);
   const left = Math.min(...roots.map((n) => n.position.x));
   const top = Math.min(...roots.map((n) => n.position.y));
   const right = Math.max(...roots.map((n) => n.position.x + n.width));
   const bottom = Math.max(...roots.map((n) => n.position.y + n.height));
   const moves = new Map<string, Point>();
-  let cursor = horizontal ? left : top;
   for (const node of roots) {
     moves.set(
       node.id,
       horizontal
-        ? { x: cursor, y: (top + bottom - node.height) / 2 }
-        : { x: (left + right - node.width) / 2, y: cursor },
+        ? { x: node.position.x, y: (top + bottom - node.height) / 2 }
+        : { x: (left + right - node.width) / 2, y: node.position.y },
     );
-    cursor += (horizontal ? node.width : node.height) + 64;
+  }
+  return moveItems(doc, moves);
+}
+
+export function distributeSelection(
+  doc: Document,
+  ids: readonly string[],
+  direction: Alignment,
+): Document {
+  if (!canDistribute(doc, ids)) return doc;
+  const axis = direction === "horizontal" ? "x" : "y";
+  const size = direction === "horizontal" ? "width" : "height";
+  const roots = visibleRoots(doc, ids).sort((a, b) => a.position[axis] - b.position[axis]);
+  const first = roots[0];
+  const last = roots.at(-1);
+  if (!first || !last) return doc;
+  const occupied = roots.slice(0, -1).reduce((sum, node) => sum + node[size], 0);
+  const gap = (last.position[axis] - first.position[axis] - occupied) / (roots.length - 1);
+  const moves = new Map<string, Point>();
+  let cursor = first.position[axis] + first[size] + gap;
+  for (const node of roots.slice(1, -1)) {
+    moves.set(node.id, { ...node.position, [axis]: cursor });
+    cursor += node[size] + gap;
   }
   return moveItems(doc, moves);
 }

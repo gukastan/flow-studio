@@ -6,10 +6,12 @@ import type { Point } from "./model";
 
 type Props = {
   readonly canAlign: boolean;
+  readonly canDistribute: boolean;
   readonly onAlign: (direction: Alignment) => void;
+  readonly onDistribute: (direction: Alignment) => void;
   readonly onLayout: (direction: "LR" | "TB") => void;
 };
-export function LayoutMenu({ canAlign, onAlign, onLayout }: Props) {
+export function LayoutMenu({ canAlign, canDistribute, onAlign, onDistribute, onLayout }: Props) {
   const [point, setPoint] = useState<Point | null>(null);
   const close = useCallback(() => setPoint(null), []);
   return (
@@ -42,6 +44,17 @@ export function LayoutMenu({ canAlign, onAlign, onLayout }: Props) {
               label: "선택 노드 세로 정렬",
               disabled: !canAlign,
               action: () => onAlign("vertical"),
+            },
+            {
+              label: "선택 노드 가로 간격 정렬",
+              disabled: !canDistribute,
+              action: () => onDistribute("horizontal"),
+              separator: true,
+            },
+            {
+              label: "선택 노드 세로 간격 정렬",
+              disabled: !canDistribute,
+              action: () => onDistribute("vertical"),
             },
             { label: "전체 가로 자동 정렬", separator: true, action: () => onLayout("LR") },
             { label: "전체 세로 자동 정렬", action: () => onLayout("TB") },

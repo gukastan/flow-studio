@@ -83,7 +83,9 @@ export function App() {
           })
         }
         canAlign={workspace.canAlign}
+        canDistribute={workspace.canDistribute}
         onAlign={workspace.align}
+        onDistribute={workspace.distribute}
         onLayout={(direction) => {
           commit(autoLayout(doc, direction, navigation.scope?.id ?? null));
           fitCanvas();
