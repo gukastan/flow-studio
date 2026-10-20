@@ -1,6 +1,7 @@
 import { Handle, Position } from "@xyflow/react";
 import { ArrowDownToLine, Expand, Network } from "lucide-react";
-import { verticalPortHandle } from "./connectionHandles";
+import { ConnectionPoints } from "./ConnectionPoints";
+import { endpointPorts } from "./connectionHandles";
 import { ExposedControls } from "./ExposedControls";
 import type { SettingChange, SettingValue } from "./exposedSettings";
 import type { Item, Port } from "./model";
@@ -13,9 +14,7 @@ type Props = {
   readonly onSetting: (groupId: string, change: SettingChange) => void;
 };
 export function SubgraphCard({ item, boundary, onEnter, settings, onSetting }: Props) {
-  const inputs = item.ports?.filter((p) => p.direction === "input") ?? [];
-  const outputs = item.ports?.filter((p) => p.direction === "output") ?? [];
-  const rows = Math.max(inputs.length, outputs.length);
+  const ports = boundary ? (item.ports ?? []) : endpointPorts(item);
   return (
     <>
       <div className="card-header subgraph-header">
@@ -39,44 +38,35 @@ export function SubgraphCard({ item, boundary, onEnter, settings, onSetting }: P
         </div>
       </div>
       <div className="subgraph-slots">
-        {Array.from({ length: rows }, (_, index) => (
-          <div className="slot-row" key={inputs[index]?.id ?? outputs[index]?.id}>
-            {[inputs[index], outputs[index]].map((port) => {
-              if (!port) return null;
-              const left = boundary ? boundary === "output" : port.direction === "input";
-              return (
-                <div
-                  key={port.id}
-                  className={`slot-label ${left ? "slot-left" : "slot-right"}`}
-                  title={port.label}
-                >
+        {ports.map((port, index) => {
+          const left = boundary !== "input";
+          const labels = boundary
+            ? [port.label]
+            : [...new Set(item.ports?.filter((p) => p.nodeId === port.nodeId).map((p) => p.label))];
+          return (
+            <div className="slot-row" key={port.id}>
+              <div
+                className={`slot-label ${boundary ? (left ? "slot-left" : "slot-right") : "slot-endpoint"}`}
+                title={labels.join(" / ")}
+              >
+                {boundary ? (
                   <Handle
                     type={left ? "target" : "source"}
                     position={left ? Position.Left : Position.Right}
                     id={port.id}
-                    isConnectable={!boundary}
+                    isConnectable={false}
                     style={{ top: 76 + index * 28 }}
                     aria-label={`${item.label} ${port.label} ${left ? "입력" : "출력"} 연결점`}
                   />
-                  {!boundary && (
-                    <Handle
-                      type={left ? "target" : "source"}
-                      position={left ? Position.Top : Position.Bottom}
-                      id={verticalPortHandle(item, port.id)}
-                      style={{
-                        left: `${((index + 1) / ((left ? inputs : outputs).length + 1)) * 100}%`,
-                      }}
-                      aria-label={`${item.label} ${port.label} ${left ? "위쪽 입력" : "아래쪽 출력"} 연결점`}
-                      title={`${port.label} · ${left ? "위쪽 입력" : "아래쪽 출력"}`}
-                    />
-                  )}
-                  {port.label || "이름 없는 연결"}
-                </div>
-              );
-            })}
-          </div>
-        ))}
-        {rows === 0 ? (
+                ) : (
+                  <ConnectionPoints item={item} slot={{ port, index, count: ports.length }} />
+                )}
+                {labels.join(" / ") || "이름 없는 연결"}
+              </div>
+            </div>
+          );
+        })}
+        {ports.length === 0 ? (
           <p className="slot-empty">
             {boundary ? "상위 화면의 연결이 표시됩니다" : "입력·출력 설정에서 연결점을 지정하세요"}
           </p>

@@ -153,15 +153,15 @@ describe("top and bottom connection points", () => {
     expect(horizontal.edges[0]).not.toHaveProperty("sourceSide");
   });
 
-  it("rejects invalid persisted sides and incompatible handles", () => {
+  it("rejects invalid persisted sides and unknown handles", () => {
     const doc = connect("out-bottom", "in-top");
     expect(() =>
       parseDocument({
         ...doc,
-        edges: doc.edges.map((e) => ({ ...e, targetSide: "bottom" })),
+        edges: doc.edges.map((e) => ({ ...e, targetSide: "diagonal" })),
       }),
     ).toThrow(DocumentError);
-    expect(() => connect("in-top", "in")).toThrow(DocumentError);
-    expect(() => connect("out", "out-bottom")).toThrow(DocumentError);
+    expect(() => connect("missing", "in")).toThrow(DocumentError);
+    expect(() => connect("out", "missing")).toThrow(DocumentError);
   });
 });

@@ -157,14 +157,12 @@ export function projectGraph(doc: Document, scope: string | null = null) {
           sourceHandle: endpointHandle(doc, {
             nodeId: e.source,
             visibleId: source,
-            direction: "output",
-            vertical: e.sourceSide === "bottom",
+            side: e.sourceSide ?? "right",
           }),
           targetHandle: endpointHandle(doc, {
             nodeId: e.target,
             visibleId: target,
-            direction: "input",
-            vertical: e.targetSide === "top",
+            side: e.targetSide ?? "left",
           }),
           projected: source !== e.source || target !== e.target,
         },

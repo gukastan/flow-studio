@@ -1,6 +1,6 @@
 import type { Connection } from "@xyflow/react";
-import { NODE_HANDLES, verticalPortHandle } from "./connectionHandles";
-import type { Document, Port } from "./model";
+import { CONNECTION_SIDES, NODE_HANDLES, portHandle } from "./connectionHandles";
+import type { ConnectionSide, Document, Port } from "./model";
 import { DocumentError, isSubgraph } from "./model";
 import { boundaryId } from "./scopeGraph";
 import { reconcileSubgraphs } from "./subgraphPorts";
@@ -12,23 +12,25 @@ function endpoint(
     readonly handle: string | null;
     readonly direction: Port["direction"];
   },
-): { readonly nodeId: string; readonly vertical: boolean } {
+): { readonly nodeId: string; readonly side: ConnectionSide } {
   const { nodeId, handle, direction } = address;
   const node = doc.nodes.find((n) => n.id === nodeId);
   if (!node) throw new DocumentError("연결할 노드를 찾을 수 없습니다.");
+  const defaultSide = direction === "output" ? "right" : "left";
   if (!isSubgraph(node)) {
-    const handles = NODE_HANDLES[direction];
-    if (handle && handle !== handles.horizontal && handle !== handles.vertical)
-      throw new DocumentError("입력·출력 연결점이 올바르지 않습니다.");
-    return { nodeId, vertical: handle === handles.vertical };
+    const side = handle ? CONNECTION_SIDES.find((s) => NODE_HANDLES[s] === handle) : defaultSide;
+    if (!side) throw new DocumentError("연결점이 올바르지 않습니다.");
+    return { nodeId, side };
   }
-  const port = node.ports?.find(
-    (p) =>
-      p.direction === direction &&
-      (!handle || p.id === handle || verticalPortHandle(node, p.id) === handle),
-  );
-  if (!port) throw new DocumentError("서브그래프 내부에서 입력·출력을 먼저 추가해 주세요.");
-  return { nodeId: port.nodeId, vertical: handle === verticalPortHandle(node, port.id) };
+  for (const port of node.ports ?? []) {
+    const side = handle
+      ? CONNECTION_SIDES.find((s) => portHandle(node, port, s) === handle)
+      : port.direction === direction
+        ? defaultSide
+        : undefined;
+    if (side) return { nodeId: port.nodeId, side };
+  }
+  throw new DocumentError("서브그래프 내부에서 연결할 노드를 먼저 지정해 주세요.");
 }
 
 export function connectNodes(
@@ -55,8 +57,8 @@ export function connectNodes(
         id: `e_${crypto.randomUUID()}`,
         source: from.nodeId,
         target: to.nodeId,
-        ...(from.vertical ? { sourceSide: "bottom" as const } : {}),
-        ...(to.vertical ? { targetSide: "top" as const } : {}),
+        ...(from.side !== "right" ? { sourceSide: from.side } : {}),
+        ...(to.side !== "left" ? { targetSide: to.side } : {}),
         label: "",
         dashed: false,
         arrow: true,

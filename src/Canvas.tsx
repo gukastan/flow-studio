@@ -3,6 +3,7 @@ import {
   Background,
   BackgroundVariant,
   ConnectionLineType,
+  ConnectionMode,
   Controls,
   MiniMap,
   ReactFlow,
@@ -136,6 +137,7 @@ export function Canvas(props: Props) {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={props.onConnect}
+        connectionMode={ConnectionMode.Loose}
         connectionDragThreshold={0}
         connectionLineType={ConnectionLineType.Bezier}
         connectionLineStyle={{ stroke: "var(--accent)", strokeWidth: 2.5 }}

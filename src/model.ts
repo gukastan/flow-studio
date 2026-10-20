@@ -47,8 +47,8 @@ const link = z.object({
   id: z.string().min(1),
   source: z.string(),
   target: z.string(),
-  sourceSide: z.enum(["right", "bottom"]).optional(),
-  targetSide: z.enum(["left", "top"]).optional(),
+  sourceSide: z.enum(["left", "top", "right", "bottom"]).optional(),
+  targetSide: z.enum(["left", "top", "right", "bottom"]).optional(),
   label: z.string().max(1000),
   dashed: z.boolean(),
   arrow: z.boolean(),
@@ -62,6 +62,7 @@ export const documentSchema = z.object({
 });
 export type Item = Readonly<z.infer<typeof item>>;
 export type Link = Readonly<z.infer<typeof link>>;
+export type ConnectionSide = NonNullable<Link["sourceSide"]>;
 export type Document = Readonly<z.infer<typeof documentSchema>>;
 export type Point = Readonly<z.infer<typeof point>>;
 export type Port = Readonly<z.infer<typeof port>>;

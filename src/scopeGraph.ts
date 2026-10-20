@@ -72,15 +72,13 @@ export function scopeGraph(doc: Document, scope: Item | null) {
         : endpointHandle(doc, {
             nodeId: endpoint,
             visibleId: visible,
-            direction: "output",
-            vertical: edge.sourceSide === "bottom",
+            side: edge.sourceSide ?? "right",
           }),
       targetHandle: input
         ? endpointHandle(doc, {
             nodeId: endpoint,
             visibleId: visible,
-            direction: "input",
-            vertical: edge.targetSide === "top",
+            side: edge.targetSide ?? "left",
           })
         : port.id,
       projected: true,

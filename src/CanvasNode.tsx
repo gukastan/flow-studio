@@ -1,9 +1,9 @@
 import type { Node, NodeProps } from "@xyflow/react";
-import { Handle, Position, useUpdateNodeInternals } from "@xyflow/react";
+import { useUpdateNodeInternals } from "@xyflow/react";
 import { Check, ChevronDown, ChevronRight, Diamond, Layers, MoreHorizontal } from "lucide-react";
 import type { CSSProperties } from "react";
 import { memo, useEffect, useState } from "react";
-import { NODE_HANDLES } from "./connectionHandles";
+import { ConnectionPoints } from "./ConnectionPoints";
 import type { SettingChange, SettingValue } from "./exposedSettings";
 import type { Item, Port } from "./model";
 import { isSubgraph } from "./model";
@@ -77,19 +77,7 @@ export const CanvasNode = memo(function CanvasNode({ data, selected }: NodeProps
       className={`graph-card ${expanded ? "group-frame" : ""} ${selected ? "is-selected" : ""}`}
       style={style}
     >
-      <Handle
-        type="target"
-        position={Position.Left}
-        id={NODE_HANDLES.input.horizontal}
-        aria-label={`${item.label} 입력 연결점`}
-      />
-      <Handle
-        type="target"
-        position={Position.Top}
-        id={NODE_HANDLES.input.vertical}
-        aria-label={`${item.label} 위쪽 입력 연결점`}
-        title="위쪽 입력"
-      />
+      <ConnectionPoints item={item} />
       <div className="card-header">
         <div className="node-meta">
           {item.kind === "group" ? (
@@ -129,19 +117,6 @@ export const CanvasNode = memo(function CanvasNode({ data, selected }: NodeProps
           )}
         </div>
       </div>
-      <Handle
-        type="source"
-        position={Position.Right}
-        id={NODE_HANDLES.output.horizontal}
-        aria-label={`${item.label} 출력 연결점`}
-      />
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        id={NODE_HANDLES.output.vertical}
-        aria-label={`${item.label} 아래쪽 출력 연결점`}
-        title="아래쪽 출력"
-      />
     </div>
   );
 });
