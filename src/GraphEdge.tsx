@@ -1,17 +1,17 @@
 import type { Edge, EdgeProps } from "@xyflow/react";
-import { BaseEdge, getSmoothStepPath } from "@xyflow/react";
+import { BaseEdge, getBezierPath } from "@xyflow/react";
 
 export function GraphEdge(props: EdgeProps<Edge<{ lane: number }>>) {
   const { sourceX: sx, sourceY: sy, targetX: tx, targetY: ty } = props;
-  const [normal, normalX, normalY] = getSmoothStepPath(props);
+  const [normal, normalX, normalY] = getBezierPath(props);
   const lane = props.data?.lane ?? 0;
   const returning = tx <= sx && ty <= sy + 24;
   const outside = returning || lane > 0;
   const top = Math.min(sy, ty) - 80 - lane * 36;
   const reach = 40 + lane * 20;
   const path = outside
-    ? `M ${sx} ${sy} C ${sx + reach} ${sy}, ${sx + reach} ${top}, ${sx} ${top}
-       L ${tx} ${top} C ${tx - reach} ${top}, ${tx - reach} ${ty}, ${tx} ${ty}`
+    ? `M ${sx} ${sy} C ${sx + reach} ${sy}, ${sx + reach} ${top}, ${(sx + tx) / 2} ${top}
+       S ${tx - reach} ${ty}, ${tx} ${ty}`
     : normal;
   return (
     <BaseEdge

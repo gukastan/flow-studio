@@ -2,6 +2,7 @@ import type { Connection, Edge, EdgeChange, NodeChange, ReactFlowInstance } from
 import {
   Background,
   BackgroundVariant,
+  ConnectionLineType,
   Controls,
   MiniMap,
   ReactFlow,
@@ -136,6 +137,7 @@ export function Canvas(props: Props) {
         onEdgesChange={onEdgesChange}
         onConnect={props.onConnect}
         connectionDragThreshold={0}
+        connectionLineType={ConnectionLineType.Bezier}
         connectionLineStyle={{ stroke: "var(--accent)", strokeWidth: 2.5 }}
         onInit={props.onReady}
         onNodeDragStart={props.onDragStart}
