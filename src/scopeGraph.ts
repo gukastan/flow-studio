@@ -1,3 +1,4 @@
+import { endpointHandle } from "./connectionHandles";
 import { projectGraph, visibleRepresentative } from "./graph";
 import type { Document, Item, Port } from "./model";
 import { ancestors, descendants, isSubgraph } from "./model";
@@ -19,20 +20,6 @@ export function boundaryId(doc: Document, scope: string, direction: Port["direct
   let id = `__boundary_${direction}_${scope}`;
   while (doc.nodes.some((n) => n.id === id)) id += "_";
   return id;
-}
-
-export function endpointHandle(
-  doc: Document,
-  endpoint: string,
-  visible: string,
-  direction: Port["direction"],
-): string {
-  return (
-    doc.nodes
-      .find((n) => n.id === visible)
-      ?.ports?.find((p) => p.direction === direction && p.nodeId === endpoint)?.id ??
-    (direction === "input" ? "in" : "out")
-  );
 }
 
 export function scopeGraph(doc: Document, scope: Item | null) {
@@ -80,8 +67,22 @@ export function scopeGraph(doc: Document, scope: Item | null) {
       ...edge,
       source: input ? boundary : visible,
       target: input ? visible : boundary,
-      sourceHandle: input ? port.id : endpointHandle(doc, endpoint, visible, "output"),
-      targetHandle: input ? endpointHandle(doc, endpoint, visible, "input") : port.id,
+      sourceHandle: input
+        ? port.id
+        : endpointHandle(doc, {
+            nodeId: endpoint,
+            visibleId: visible,
+            direction: "output",
+            vertical: edge.sourceSide === "bottom",
+          }),
+      targetHandle: input
+        ? endpointHandle(doc, {
+            nodeId: endpoint,
+            visibleId: visible,
+            direction: "input",
+            vertical: edge.targetSide === "top",
+          })
+        : port.id,
       projected: true,
     });
   }

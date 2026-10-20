@@ -1,5 +1,6 @@
 import { Handle, Position } from "@xyflow/react";
 import { ArrowDownToLine, Expand, Network } from "lucide-react";
+import { verticalPortHandle } from "./connectionHandles";
 import { ExposedControls } from "./ExposedControls";
 import type { SettingChange, SettingValue } from "./exposedSettings";
 import type { Item, Port } from "./model";
@@ -57,6 +58,18 @@ export function SubgraphCard({ item, boundary, onEnter, settings, onSetting }: P
                     style={{ top: 76 + index * 28 }}
                     aria-label={`${item.label} ${port.label} ${left ? "입력" : "출력"} 연결점`}
                   />
+                  {!boundary && (
+                    <Handle
+                      type={left ? "target" : "source"}
+                      position={left ? Position.Top : Position.Bottom}
+                      id={verticalPortHandle(item, port.id)}
+                      style={{
+                        left: `${((index + 1) / ((left ? inputs : outputs).length + 1)) * 100}%`,
+                      }}
+                      aria-label={`${item.label} ${port.label} ${left ? "위쪽 입력" : "아래쪽 출력"} 연결점`}
+                      title={`${port.label} · ${left ? "위쪽 입력" : "아래쪽 출력"}`}
+                    />
+                  )}
                   {port.label || "이름 없는 연결"}
                 </div>
               );

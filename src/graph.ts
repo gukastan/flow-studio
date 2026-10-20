@@ -1,3 +1,4 @@
+import { endpointHandle } from "./connectionHandles";
 import type { Document, Item, Point } from "./model";
 import { ancestors, descendants, isSubgraph, newNode } from "./model";
 import { reconcileSubgraphs } from "./subgraphPorts";
@@ -153,14 +154,18 @@ export function projectGraph(doc: Document, scope: string | null = null) {
           ...e,
           source,
           target,
-          sourceHandle:
-            doc.nodes
-              .find((n) => n.id === source)
-              ?.ports?.find((p) => p.direction === "output" && p.nodeId === e.source)?.id ?? "out",
-          targetHandle:
-            doc.nodes
-              .find((n) => n.id === target)
-              ?.ports?.find((p) => p.direction === "input" && p.nodeId === e.target)?.id ?? "in",
+          sourceHandle: endpointHandle(doc, {
+            nodeId: e.source,
+            visibleId: source,
+            direction: "output",
+            vertical: e.sourceSide === "bottom",
+          }),
+          targetHandle: endpointHandle(doc, {
+            nodeId: e.target,
+            visibleId: target,
+            direction: "input",
+            vertical: e.targetSide === "top",
+          }),
           projected: source !== e.source || target !== e.target,
         },
       ];

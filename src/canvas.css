@@ -112,6 +112,12 @@
 .graph-card .react-flow__handle-right {
   right: -1px;
 }
+.graph-card .react-flow__handle-top {
+  top: -1px;
+}
+.graph-card .react-flow__handle-bottom {
+  bottom: -1px;
+}
 .group-frame {
   background: color-mix(in srgb, var(--node-color) 3%, transparent);
   box-shadow: none;

@@ -82,7 +82,13 @@ export function useCanvasGraph(options: Options) {
     data: {
       lane: graph.edges
         .slice(0, index)
-        .filter((e) => e.source === edge.source && e.target === edge.target).length,
+        .filter(
+          (e) =>
+            e.source === edge.source &&
+            e.target === edge.target &&
+            e.sourceHandle === edge.sourceHandle &&
+            e.targetHandle === edge.targetHandle,
+        ).length,
     },
     selected: edgeIds.includes(edge.id),
     ...(edge.arrow ? { markerEnd: { type: MarkerType.ArrowClosed, color: "var(--edge)" } } : {}),

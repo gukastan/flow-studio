@@ -47,6 +47,8 @@ const link = z.object({
   id: z.string().min(1),
   source: z.string(),
   target: z.string(),
+  sourceSide: z.enum(["right", "bottom"]).optional(),
+  targetSide: z.enum(["left", "top"]).optional(),
   label: z.string().max(1000),
   dashed: z.boolean(),
   arrow: z.boolean(),
