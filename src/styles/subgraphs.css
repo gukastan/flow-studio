@@ -43,6 +43,12 @@
   height: 60px;
   padding: 10px 14px;
 }
+.react-flow__node.draggable .subgraph-card {
+  cursor: grab;
+}
+.react-flow__node.draggable .subgraph-card:active {
+  cursor: grabbing;
+}
 .subgraph-header .node-title-row {
   margin-top: 4px;
 }

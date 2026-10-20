@@ -57,7 +57,7 @@ export function useCanvasGraph(options: Options) {
         draggable: !boundary,
         zIndex: frame ? 1 + ancestors(doc, item.id).length : 10,
         style: { pointerEvents: frame ? "none" : "auto" },
-        dragHandle: ".card-header",
+        dragHandle: isSubgraph(item) ? ".subgraph-card" : ".card-header",
         data: {
           item,
           count: descendants(doc, item.id).size,

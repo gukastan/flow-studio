@@ -1,11 +1,38 @@
 import { describe, expect, it } from "vitest";
 import { connectNodes } from "./connections";
-import { convertToSubgraph } from "./graph";
+import { convertToSubgraph, moveItems } from "./graph";
 import { DocumentError } from "./model";
 import { starter } from "./sample";
 import { boundaryId, scopeGraph } from "./scopeGraph";
 
 describe("external connections inside a subgraph", () => {
+  it("keeps 320px of room between boundary cards and the inner nodes", () => {
+    const doc = convertToSubgraph(starter, ["g"]);
+    const group = doc.nodes.find((n) => n.id === "g");
+    if (!group) throw new DocumentError("Missing fixture subgraph");
+    for (const current of [
+      doc,
+      moveItems(
+        doc,
+        new Map([
+          ["b", { x: -600, y: 400 }],
+          ["c", { x: 1600, y: 500 }],
+        ]),
+      ),
+    ]) {
+      const view = scopeGraph(current, group);
+      const input = view.nodes.find((n) => view.boundaries.get(n.id) === "input");
+      const output = view.nodes.find((n) => view.boundaries.get(n.id) === "output");
+      const inner = view.nodes.filter((n) => !view.boundaries.has(n.id));
+      if (!input || !output) throw new DocumentError("Missing fixture boundaries");
+      const left = Math.min(...inner.map((n) => n.position.x));
+      const right = Math.max(...inner.map((n) => n.position.x + n.width));
+      expect(left - input.position.x - input.width).toBe(320);
+      expect(output.position.x - right).toBe(320);
+      expect(inner).toEqual(current.nodes.filter((n) => n.parent === group.id));
+      expect(view.edges.map((e) => e.id).sort()).toEqual(current.edges.map((e) => e.id).sort());
+    }
+  });
   it("projects each external connection with its original ID and appearance", () => {
     // Given
     const doc = convertToSubgraph(starter, ["g"]);

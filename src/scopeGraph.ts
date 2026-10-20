@@ -3,6 +3,9 @@ import { projectGraph, visibleRepresentative } from "./graph";
 import type { Document, Item, Port } from "./model";
 import { ancestors, descendants, isSubgraph } from "./model";
 
+const BOUNDARY_WIDTH = 224;
+const BOUNDARY_GAP = 320;
+
 export function scopeDocument(doc: Document, scope: string | null): Document {
   const within = scope ? descendants(doc, scope) : new Set(doc.nodes.map((n) => n.id));
   const nodes = doc.nodes
@@ -26,9 +29,13 @@ export function scopeGraph(doc: Document, scope: Item | null) {
   const graph = projectGraph(doc, scope?.id ?? null);
   const boundaries = new Map<string, Port["direction"]>();
   if (!scope) return { ...graph, boundaries, slots: new Map<string, string>() };
-  const left = (graph.nodes.length ? Math.min(...graph.nodes.map((n) => n.position.x)) : 0) - 320;
+  const left =
+    (graph.nodes.length ? Math.min(...graph.nodes.map((n) => n.position.x)) : 0) -
+    BOUNDARY_WIDTH -
+    BOUNDARY_GAP;
   const right =
-    (graph.nodes.length ? Math.max(...graph.nodes.map((n) => n.position.x + n.width)) : 300) + 96;
+    (graph.nodes.length ? Math.max(...graph.nodes.map((n) => n.position.x + n.width)) : 300) +
+    BOUNDARY_GAP;
   const top = graph.nodes.length ? Math.min(...graph.nodes.map((n) => n.position.y)) : 0;
   const nodes = [...graph.nodes];
   for (const direction of ["input", "output"] as const) {
@@ -44,7 +51,7 @@ export function scopeGraph(doc: Document, scope: Item | null) {
       parent: null,
       ports,
       label: direction === "input" ? "서브그래프 입력" : "서브그래프 출력",
-      width: 224,
+      width: BOUNDARY_WIDTH,
       height: Math.max(116, 82 + ports.length * 28),
       position: { x: direction === "input" ? left : right, y: top },
     });
