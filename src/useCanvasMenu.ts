@@ -2,7 +2,9 @@ import { useCallback, useState } from "react";
 import type { MenuEntry, MenuRequest } from "./ContextMenu";
 import { selectionRoots } from "./graph";
 import { isSubgraph, PALETTE } from "./model";
+import { scopeGraph } from "./scopeGraph";
 import type { useWorkspace } from "./useWorkspace";
+import { visibleEdgeBundles } from "./visibleEdges";
 
 export function useCanvasMenu(workspace: ReturnType<typeof useWorkspace>) {
   const [request, setRequest] = useState<MenuRequest | null>(null);
@@ -149,16 +151,20 @@ export function useCanvasMenu(workspace: ReturnType<typeof useWorkspace>) {
       case "edge": {
         const id = request.target.id;
         const edge = workspace.doc.edges.find((e) => e.id === id);
-        title = edge?.label || "연결선";
+        const displayed = visibleEdgeBundles(
+          scopeGraph(workspace.doc, workspace.navigation.scope),
+        ).find((bundle) => bundle.edge.id === id)?.edge;
+        const visual = displayed ?? edge;
+        title = visual?.label || "연결선";
         entries = [
           { label: "연결 이름·속성", action: properties },
           {
-            label: edge?.dashed ? "실선으로 변경" : "점선으로 변경",
-            action: () => workspace.edgePatch(id, { dashed: !edge?.dashed }),
+            label: visual?.dashed ? "실선으로 변경" : "점선으로 변경",
+            action: () => workspace.edgePatch(id, { dashed: !visual?.dashed }),
           },
           {
-            label: edge?.arrow ? "화살표 숨기기" : "화살표 표시",
-            action: () => workspace.edgePatch(id, { arrow: !edge?.arrow }),
+            label: visual?.arrow ? "화살표 숨기기" : "화살표 표시",
+            action: () => workspace.edgePatch(id, { arrow: !visual?.arrow }),
           },
           { label: "연결 삭제", action: workspace.remove, danger: true, separator: true },
         ];

@@ -1,12 +1,16 @@
 import { ArrowRight, Check, Layers, MousePointer2, SlidersHorizontal, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { ContainerActions } from "./ContainerActions";
+import { visibleRepresentative } from "./graph";
 import type { Document, Item, Link } from "./model";
 import { descendants, isSubgraph, PALETTE } from "./model";
+import { scopeGraph } from "./scopeGraph";
 import { TextField } from "./TextField";
+import { visibleEdgeBundles } from "./visibleEdges";
 
 type Props = {
   doc: Document;
+  scope: Item | null;
   selected: readonly string[];
   edgeId: string | null;
   onPatch: (patch: Partial<Item>) => void;
@@ -25,6 +29,12 @@ export function Inspector(props: Props) {
   const [target, setTarget] = useState("");
   const node = doc.nodes.find((n) => n.id === selected[0]);
   const edge = doc.edges.find((e) => e.id === edgeId);
+  const displayedEdge = edge
+    ? visibleEdgeBundles(scopeGraph(doc, props.scope)).find((bundle) => bundle.edge.id === edge.id)
+    : undefined;
+  const visualEdge = displayedEdge?.edge ?? edge;
+  const source = edge ? visibleRepresentative(doc, edge.source, props.scope?.id ?? null) : null;
+  const targetId = edge ? visibleRepresentative(doc, edge.target, props.scope?.id ?? null) : null;
   const blocked = node ? descendants(doc, node.id) : new Set<string>();
   return (
     <aside className="inspector panel" aria-label="속성 편집">
@@ -181,18 +191,23 @@ export function Inspector(props: Props) {
             <span className="eyebrow">CONNECTION</span>
             <TextField
               label="연결 이름"
-              value={edge.label}
+              value={visualEdge?.label ?? ""}
               onChange={(label) => props.onEdgePatch(edge.id, { label })}
             />
             <p className="connection-description">
-              {doc.nodes.find((n) => n.id === edge.source)?.label}
+              {doc.nodes.find((n) => n.id === source)?.label}
               <ArrowRight size={16} />
-              {doc.nodes.find((n) => n.id === edge.target)?.label}
+              {doc.nodes.find((n) => n.id === targetId)?.label}
             </p>
+            {displayedEdge && displayedEdge.memberIds.length > 1 && (
+              <p className="muted">
+                내부 연결 {displayedEdge.memberIds.length}개에 함께 적용됩니다.
+              </p>
+            )}
             <label className="check-field">
               <input
                 type="checkbox"
-                checked={edge.dashed}
+                checked={visualEdge?.dashed ?? false}
                 onChange={(e) => props.onEdgePatch(edge.id, { dashed: e.target.checked })}
               />
               점선으로 표시
@@ -200,7 +215,7 @@ export function Inspector(props: Props) {
             <label className="check-field">
               <input
                 type="checkbox"
-                checked={edge.arrow}
+                checked={visualEdge?.arrow ?? false}
                 onChange={(e) => props.onEdgePatch(edge.id, { arrow: e.target.checked })}
               />
               화살표 표시

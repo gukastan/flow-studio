@@ -8,6 +8,7 @@ import type { Document, Item } from "./model";
 import { ancestors, descendants, isSubgraph } from "./model";
 import { type RouteBox, routeBoxesByNode } from "./sameSideRoute";
 import { scopeGraph } from "./scopeGraph";
+import { visibleEdgeBundles } from "./visibleEdges";
 
 type Options = {
   readonly doc: Document;
@@ -23,6 +24,7 @@ type Options = {
 export function useCanvasGraph(options: Options) {
   const { doc, scope, selected, edgeIds, onRename, onToggle, onEnter, onPorts } = options;
   const graph = useMemo(() => scopeGraph(doc, scope), [doc, scope]);
+  const displayEdges = visibleEdgeBundles(graph).map((bundle) => bundle.edge);
   const [measurements, setMeasurements] = useState(
     () => new Map<string, { width: number; height: number }>(),
   );
@@ -85,9 +87,9 @@ export function useCanvasGraph(options: Options) {
       width: node.measured?.width ?? node.width ?? 224,
       height: node.measured?.height ?? node.height ?? 88,
     }));
-  const boxesByNode = routeBoxesByNode(boxes, graph.edges);
+  const boxesByNode = routeBoxesByNode(boxes, displayEdges);
   const selectedEdges = new Set(edgeIds);
-  const edges: Edge[] = graph.edges.map((edge, index) => ({
+  const edges: Edge[] = displayEdges.map((edge, index) => ({
     id: edge.id,
     source: edge.source,
     target: edge.target,
@@ -97,7 +99,7 @@ export function useCanvasGraph(options: Options) {
     type: "flow",
     data: {
       boxes: boxesByNode.get(edge.source) ?? [],
-      lane: graph.edges
+      lane: displayEdges
         .slice(0, index)
         .filter(
           (e) =>

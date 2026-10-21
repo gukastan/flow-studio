@@ -17,6 +17,7 @@ import { useDocument } from "./useDocument";
 import { useNavigation } from "./useNavigation";
 import { useProjectFiles } from "./useProjectFiles";
 import { useShortcuts } from "./useShortcuts";
+import { realEdgeIdsForVisible } from "./visibleEdges";
 export function useWorkspace() {
   const history = useDocument();
   const { doc, commit, undo, redo } = history;
@@ -94,12 +95,13 @@ export function useWorkspace() {
     if (matchMedia("(max-width: 700px)").matches) setDrawer("inspector");
   }
   const remove = useCallback(() => {
-    commit((d) =>
-      removeItems({ ...d, edges: d.edges.filter((e) => !edgeIds.includes(e.id)) }, selected),
-    );
+    commit((d) => {
+      const removedEdges = realEdgeIdsForVisible(d, navigation.scope, edgeIds);
+      return removeItems({ ...d, edges: d.edges.filter((e) => !removedEdges.has(e.id)) }, selected);
+    });
     setSelected([]);
     setEdgeId(null);
-  }, [commit, edgeIds, selected, setEdgeId]);
+  }, [commit, edgeIds, navigation.scope, selected, setEdgeId]);
   const group = useCallback(() => {
     const roots = selectionRoots(doc, selected);
     if (roots.length === 1 && isSubgraph(roots[0])) {
@@ -199,10 +201,13 @@ export function useWorkspace() {
     }));
   }
   function edgePatch(id: string, patchValue: Partial<Link>) {
-    commit((d) => ({
-      ...d,
-      edges: d.edges.map((e) => (e.id === id ? { ...e, ...patchValue } : e)),
-    }));
+    commit((d) => {
+      const patchedEdges = realEdgeIdsForVisible(d, navigation.scope, [id]);
+      return {
+        ...d,
+        edges: d.edges.map((e) => (patchedEdges.has(e.id) ? { ...e, ...patchValue } : e)),
+      };
+    });
   }
 
   return {

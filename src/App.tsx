@@ -181,6 +181,7 @@ export function App() {
         ) : (
           <Inspector
             doc={doc}
+            scope={navigation.scope}
             selected={selected}
             edgeId={edgeId}
             onPatch={patch}
