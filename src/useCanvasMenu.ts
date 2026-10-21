@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import type { MenuEntry, MenuRequest } from "./ContextMenu";
 import { selectionRoots } from "./graph";
+import { autoLayout } from "./layout";
 import { isSubgraph, PALETTE } from "./model";
 import { scopeGraph } from "./scopeGraph";
 import type { useWorkspace } from "./useWorkspace";
@@ -185,6 +186,22 @@ export function useCanvasMenu(workspace: ReturnType<typeof useWorkspace>) {
             action: () => workspace.addNode(workspace.flow.current?.screenToFlowPosition(point)),
           },
           { label: "Mermaid 붙여넣기", action: () => workspace.setImporting(true) },
+          {
+            label: "정렬",
+            children: ["LR", "TB"].map((direction) => ({
+              label: direction === "LR" ? "전체 가로 자동 정렬" : "전체 세로 자동 정렬",
+              action: () => {
+                workspace.commit(
+                  autoLayout(
+                    workspace.doc,
+                    direction === "LR" ? "LR" : "TB",
+                    workspace.navigation.scope?.id ?? null,
+                  ),
+                );
+                workspace.fitCanvas();
+              },
+            })),
+          },
           { label: "전체 보기", action: workspace.fitCanvas, separator: true },
           {
             label: "되돌리기",

@@ -2,50 +2,33 @@ import {
   Code2,
   Download,
   FolderOpen,
-  Group,
   Maximize,
   Moon,
-  MoreHorizontal,
   PanelLeft,
-  Plus,
   Redo2,
   SlidersHorizontal,
   Sun,
   Undo2,
-  Ungroup,
   Workflow,
 } from "lucide-react";
-import type { Alignment } from "./alignment";
-import { LayoutMenu } from "./LayoutMenu";
-import type { Point } from "./model";
+import { WorkflowTabs, type WorkflowTabsProps } from "./WorkflowTabs";
 
 type Props = {
   title: string;
   canUndo: boolean;
   canRedo: boolean;
-  selectedCount: number;
-  isGroup: boolean;
-  isSubgraph: boolean;
+  workflows: WorkflowTabsProps;
   theme: "light" | "dark";
   onTitle: (title: string) => void;
   onImport: () => void;
   onSave: () => void;
   onLoad: () => void;
-  onAdd: () => void;
-  onGroup: () => void;
-  onSubgraph: () => void;
-  canAlign: boolean;
-  canDistribute: boolean;
-  onAlign: (direction: Alignment) => void;
-  onDistribute: (direction: Alignment) => void;
-  onLayout: (direction: "LR" | "TB") => void;
   onFit: () => void;
   onUndo: () => void;
   onRedo: () => void;
   onTheme: () => void;
   onOutline: () => void;
   onInspector: () => void;
-  onActions: (point: Point) => void;
 };
 export function Toolbar(p: Props) {
   return (
@@ -98,6 +81,7 @@ export function Toolbar(p: Props) {
         <button
           type="button"
           className="icon-button mobile-outline"
+          id="open-outline"
           onClick={p.onOutline}
           title="구조 목록"
           aria-label="구조 목록 열기"
@@ -109,86 +93,48 @@ export function Toolbar(p: Props) {
           Mermaid 붙여넣기
         </button>
         <span className="toolbar-divider" />
-        <button type="button" onClick={p.onAdd}>
-          <Plus size={17} />
-          노드 추가
-        </button>
-        <button
-          type="button"
-          onClick={p.onGroup}
-          disabled={!p.selectedCount || p.isSubgraph}
-          title="그룹화 / 해제 · ⌘G"
-        >
-          {p.isGroup ? <Ungroup size={17} /> : <Group size={17} />}
-          {p.isGroup && !p.isSubgraph ? "그룹 해제" : "그룹화"}
-        </button>
-        <button
-          type="button"
-          onClick={p.onSubgraph}
-          disabled={!p.selectedCount}
-          title="서브그래프로 변환 / 해제 · Ctrl+G"
-        >
-          <Workflow size={17} />
-          {p.isSubgraph ? "서브그래프 풀기" : "서브그래프로 변환"}
-        </button>
-        <button
-          type="button"
-          className="icon-button"
-          aria-label="선택 작업 메뉴"
-          title="선택 작업 · 우클릭"
-          onClick={(event) => {
-            const bounds = event.currentTarget.getBoundingClientRect();
-            p.onActions({ x: bounds.x, y: bounds.bottom + 4 });
-          }}
-        >
-          <MoreHorizontal size={17} />
-        </button>
-        <LayoutMenu
-          canAlign={p.canAlign}
-          canDistribute={p.canDistribute}
-          onAlign={p.onAlign}
-          onDistribute={p.onDistribute}
-          onLayout={p.onLayout}
-        />
-        <span className="toolbar-spacer" />
-        <button
-          type="button"
-          className="icon-button"
-          aria-label="되돌리기"
-          title="되돌리기 · ⌘Z / Ctrl+Z"
-          onClick={p.onUndo}
-          disabled={!p.canUndo}
-        >
-          <Undo2 size={17} />
-        </button>
-        <button
-          type="button"
-          className="icon-button"
-          aria-label="다시 실행"
-          title="다시 실행 · ⌘⇧Z / Ctrl+Shift+Z"
-          onClick={p.onRedo}
-          disabled={!p.canRedo}
-        >
-          <Redo2 size={17} />
-        </button>
-        <span className="toolbar-divider" />
-        <button
-          type="button"
-          className="icon-button"
-          aria-label="전체 보기"
-          title="전체 보기"
-          onClick={p.onFit}
-        >
-          <Maximize size={17} />
-        </button>
-        <button
-          type="button"
-          className="icon-button mobile-inspector"
-          aria-label="속성 열기"
-          onClick={p.onInspector}
-        >
-          <SlidersHorizontal size={17} />
-        </button>
+        <WorkflowTabs {...p.workflows} />
+        <div className="toolbar-utilities">
+          <button
+            type="button"
+            className="icon-button"
+            aria-label="되돌리기"
+            title="되돌리기 · ⌘Z / Ctrl+Z"
+            onClick={p.onUndo}
+            disabled={!p.canUndo}
+          >
+            <Undo2 size={17} />
+          </button>
+          <button
+            type="button"
+            className="icon-button"
+            aria-label="다시 실행"
+            title="다시 실행 · ⌘⇧Z / Ctrl+Shift+Z"
+            onClick={p.onRedo}
+            disabled={!p.canRedo}
+          >
+            <Redo2 size={17} />
+          </button>
+          <span className="toolbar-divider" />
+          <button
+            type="button"
+            className="icon-button"
+            aria-label="전체 보기"
+            title="전체 보기"
+            onClick={p.onFit}
+          >
+            <Maximize size={17} />
+          </button>
+          <button
+            type="button"
+            className="icon-button mobile-inspector"
+            id="open-inspector"
+            aria-label="속성 열기"
+            onClick={p.onInspector}
+          >
+            <SlidersHorizontal size={17} />
+          </button>
+        </div>
       </nav>
     </>
   );

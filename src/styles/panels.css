@@ -1,0 +1,50 @@
+.workspace > .canvas-region {
+  grid-column: 2;
+  grid-row: 1;
+}
+.panel-heading .panel-toggle {
+  flex-shrink: 0;
+  margin-inline-start: auto;
+}
+.panel-restore {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  box-shadow: var(--shadow);
+}
+.app .panel-restore:active {
+  transform: translateY(-50%);
+}
+.restore-outline {
+  left: 8px;
+}
+.restore-inspector {
+  right: 8px;
+}
+@media (min-width: 1101px) {
+  .workspace[data-outline-hidden="true"] {
+    --outline-width: 0px;
+  }
+  .workspace[data-outline-hidden="true"] > .outline {
+    display: none;
+  }
+}
+@media (min-width: 701px) {
+  .workspace[data-inspector-hidden="true"] {
+    --inspector-width: 0px;
+  }
+  .workspace[data-inspector-hidden="true"] > .inspector {
+    display: none;
+  }
+}
+@media (max-width: 1100px) {
+  .app .restore-outline {
+    display: none;
+  }
+}
+@media (max-width: 700px) {
+  .app .restore-inspector {
+    display: none;
+  }
+}

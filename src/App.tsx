@@ -2,12 +2,12 @@ import { CheckCircle2, X } from "lucide-react";
 import { Canvas } from "./Canvas";
 import { CanvasBreadcrumb } from "./CanvasBreadcrumb";
 import { ContextMenu } from "./ContextMenu";
-import { fitGroups, selectionRoots, visibleRepresentative } from "./graph";
+import { fitGroups, visibleRepresentative } from "./graph";
 import { ImportDialog } from "./ImportDialog";
 import { Inspector } from "./Inspector";
-import { autoLayout } from "./layout";
 import { isSubgraph } from "./model";
 import { Outline } from "./Outline";
+import { PanelToggle } from "./PanelToggle";
 import { ProjectFiles } from "./ProjectFiles";
 import { StatusBar } from "./StatusBar";
 import { SubgraphPanel } from "./SubgraphPanel";
@@ -43,7 +43,6 @@ export function App() {
     select,
     remove,
     group,
-    addNode,
     save,
     replace,
     loadFile,
@@ -51,19 +50,42 @@ export function App() {
     edgePatch,
     setEdgeId,
   } = workspace;
-  const roots = selectionRoots(doc, selected);
-  const isGroup = roots.length === 1 && roots[0]?.kind === "group";
   const navigation = workspace.navigation;
+  function setPanelHidden(side: "outline" | "inspector", hidden: boolean) {
+    const compact = matchMedia(`(max-width: ${side === "outline" ? 1100 : 700}px)`).matches;
+    if (compact) setDrawer(hidden ? null : side);
+    else workspace.setHiddenPanels((panels) => ({ ...panels, [side]: hidden }));
+    menu.close();
+    requestAnimationFrame(() => {
+      const control = hidden ? (compact ? "open" : "restore") : "collapse";
+      document.getElementById(`${control}-${side}`)?.focus({ preventScroll: true });
+    });
+  }
   const portsGroup = doc.nodes.find((n) => n.id === workspace.portsGroupId && isSubgraph(n));
+  function switchWorkflow(id?: string) {
+    if (id === history.activeId) return;
+    menu.close();
+    select([]);
+    navigation.navigate(null);
+    setDrawer(null);
+    setImporting(false);
+    workspace.setSaving(false);
+    setNotice("");
+    if (id) history.selectWorkflow(id);
+    else history.addWorkflow();
+  }
   return (
     <div className={`app ${drawer ? `show-${drawer}` : ""}`} data-theme={theme}>
       <Toolbar
         title={doc.title}
         canUndo={history.canUndo}
         canRedo={history.canRedo}
-        selectedCount={selected.length}
-        isGroup={isGroup}
-        isSubgraph={isGroup && isSubgraph(roots[0])}
+        workflows={{
+          workflows: history.workflows,
+          activeId: history.activeId,
+          onSelect: switchWorkflow,
+          onAdd: () => switchWorkflow(),
+        }}
         theme={theme}
         onTitle={(title) => {
           if (title !== doc.title) commit({ ...doc, title });
@@ -71,27 +93,6 @@ export function App() {
         onImport={() => setImporting(true)}
         onSave={save}
         onLoad={() => file.current?.click()}
-        onAdd={() => addNode()}
-        onGroup={group}
-        onSubgraph={workspace.subgraph}
-        onActions={(point) =>
-          menu.open({
-            point,
-            target: selected.length
-              ? { kind: "nodes", ids: selected }
-              : edgeId
-                ? { kind: "edge", id: edgeId }
-                : { kind: "pane" },
-          })
-        }
-        canAlign={workspace.canAlign}
-        canDistribute={workspace.canDistribute}
-        onAlign={workspace.align}
-        onDistribute={workspace.distribute}
-        onLayout={(direction) => {
-          commit(autoLayout(doc, direction, navigation.scope?.id ?? null));
-          fitCanvas();
-        }}
         onFit={fitCanvas}
         onUndo={undo}
         onRedo={redo}
@@ -99,7 +100,14 @@ export function App() {
         onOutline={() => setDrawer(drawer === "outline" ? null : "outline")}
         onInspector={() => setDrawer(drawer === "inspector" ? null : "inspector")}
       />
-      <div className="workspace" id="canvas">
+      <div
+        className="workspace"
+        id="canvas"
+        role="tabpanel"
+        aria-labelledby={`workflow-tab-${history.activeId}`}
+        data-outline-hidden={workspace.hiddenPanels.outline}
+        data-inspector-hidden={workspace.hiddenPanels.inspector}
+      >
         {drawer && (
           <button
             type="button"
@@ -109,6 +117,7 @@ export function App() {
           />
         )}
         <Outline
+          onCollapse={() => setPanelHidden("outline", true)}
           doc={workspace.viewDoc}
           selected={selected}
           onSelect={select}
@@ -133,6 +142,7 @@ export function App() {
           }}
         />
         <Canvas
+          key={history.activeId}
           doc={doc}
           scope={navigation.scope}
           onEnter={navigation.navigate}
@@ -175,6 +185,7 @@ export function App() {
         </Canvas>
         {portsGroup ? (
           <SubgraphPanel
+            onCollapse={() => setPanelHidden("inspector", true)}
             doc={doc}
             group={portsGroup}
             onCommit={commit}
@@ -182,6 +193,7 @@ export function App() {
           />
         ) : (
           <Inspector
+            onCollapse={() => setPanelHidden("inspector", true)}
             doc={doc}
             scope={navigation.scope}
             selected={selected}
@@ -206,6 +218,20 @@ export function App() {
                 }),
               )
             }
+          />
+        )}
+        {workspace.hiddenPanels.outline && (
+          <PanelToggle
+            side="outline"
+            expanded={false}
+            onClick={() => setPanelHidden("outline", false)}
+          />
+        )}
+        {workspace.hiddenPanels.inspector && (
+          <PanelToggle
+            side="inspector"
+            expanded={false}
+            onClick={() => setPanelHidden("inspector", false)}
           />
         )}
       </div>

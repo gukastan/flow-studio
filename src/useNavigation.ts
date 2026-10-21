@@ -7,14 +7,15 @@ import { ancestors, isSubgraph } from "./model";
 import { scopeGraph } from "./scopeGraph";
 
 type Options = {
+  readonly workflowId: string;
   readonly doc: Document;
   readonly flow: RefObject<ReactFlowInstance<FlowNode, Edge> | null>;
   readonly resetSelection: () => void;
 };
-export function useNavigation({ doc, flow, resetSelection }: Options) {
+export function useNavigation({ workflowId, doc, flow, resetSelection }: Options) {
   const [scopeId, setScopeId] = useState<string | null>(null);
   const scope = doc.nodes.find((n) => n.id === scopeId && isSubgraph(n)) ?? null;
-  const cameras = useRef(new Map<string | null, Viewport>());
+  const cameras = useRef(new Map<string, Viewport>());
   const latest = useRef(doc);
   useLayoutEffect(() => {
     latest.current = doc;
@@ -27,7 +28,8 @@ export function useNavigation({ doc, flow, resetSelection }: Options) {
   function navigate(id: string | null) {
     if (id === scope?.id || (id && !doc.nodes.some((n) => n.id === id && isSubgraph(n)))) return;
     const instance = flow.current;
-    if (instance) cameras.current.set(scope?.id ?? null, instance.getViewport());
+    if (instance)
+      cameras.current.set(`${workflowId}:${scope?.id ?? "root"}`, instance.getViewport());
     resetSelection();
     setScopeId(id);
   }
@@ -36,7 +38,7 @@ export function useNavigation({ doc, flow, resetSelection }: Options) {
     const frame = requestAnimationFrame(() => {
       const instance = flow.current;
       if (!instance) return;
-      const camera = cameras.current.get(scopeKey);
+      const camera = cameras.current.get(`${workflowId}:${scopeKey ?? "root"}`);
       if (camera) void instance.setViewport(camera);
       else {
         const current = latest.current;
@@ -58,7 +60,7 @@ export function useNavigation({ doc, flow, resetSelection }: Options) {
       }
     });
     return () => cancelAnimationFrame(frame);
-  }, [scopeKey, flow]);
+  }, [scopeKey, workflowId, flow]);
   function leave() {
     navigate(path.at(-2)?.id ?? null);
   }

@@ -29,6 +29,7 @@ export function useWorkspace() {
   const [notice, setNotice] = useState("");
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [drawer, setDrawer] = useState<"outline" | "inspector" | null>(null);
+  const [hiddenPanels, setHiddenPanels] = useState({ outline: false, inspector: false });
   const [portsGroupId, setPortsGroupId] = useState<string | null>(null);
   const flow = useRef<ReactFlowInstance<FlowNode, Edge> | null>(null);
   const { fitCanvas, canvasCenter } = useCanvasView(flow);
@@ -57,6 +58,7 @@ export function useWorkspace() {
     [setEdgeId],
   );
   const navigation = useNavigation({
+    workflowId: history.activeId,
     doc,
     flow,
     resetSelection: () => {
@@ -115,6 +117,7 @@ export function useWorkspace() {
   }
   function openPorts(id: string) {
     setPortsGroupId(id);
+    setHiddenPanels((panels) => ({ ...panels, inspector: false }));
     if (matchMedia("(max-width: 700px)").matches) setDrawer("inspector");
   }
   const remove = useCallback(() => {
@@ -261,6 +264,8 @@ export function useWorkspace() {
     setTheme,
     drawer,
     setDrawer,
+    hiddenPanels,
+    setHiddenPanels,
     flow,
     fitCanvas,
     rename,

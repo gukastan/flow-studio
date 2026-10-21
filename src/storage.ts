@@ -10,7 +10,7 @@ export function loadInitial(): { doc: Document; warning: string } {
     const saved = localStorage.getItem(STORAGE_KEY);
     return { doc: saved ? parseDocument(JSON.parse(saved)) : starter, warning: "" };
   } catch (error) {
-    if (error instanceof Error)
+    if (error instanceof Error || error instanceof DOMException)
       return {
         doc: starter,
         warning: "자동 저장본을 열지 못했습니다. 저장한 프로젝트 파일을 불러와 주세요.",

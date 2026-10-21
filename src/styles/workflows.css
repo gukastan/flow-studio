@@ -1,0 +1,74 @@
+.toolbar {
+  min-width: 0;
+}
+.toolbar-utilities {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.workflow-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+.workflow-tab-list {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  overflow-x: auto;
+  padding: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.toolbar .workflow-tab {
+  flex-shrink: 0;
+  max-width: 240px;
+  color: var(--muted);
+}
+.workflow-tab span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.workflow-tab svg {
+  flex-shrink: 0;
+}
+.toolbar .workflow-tab[aria-selected="true"] {
+  background: var(--elevated);
+  border-color: var(--border);
+  color: var(--text);
+}
+.workflow-tab[aria-selected="true"] svg {
+  color: var(--accent);
+}
+@media (max-width: 700px) {
+  .app {
+    grid-template-rows: 64px 112px minmax(0, 1fr) 32px;
+  }
+  .toolbar {
+    flex-wrap: wrap;
+    overflow: hidden;
+  }
+  .toolbar > .toolbar-divider {
+    display: none;
+  }
+  .toolbar .import-action {
+    padding-inline: 8px;
+    gap: 4px;
+    font-size: 12px;
+  }
+  .toolbar-utilities {
+    margin-inline-start: auto;
+    gap: 0;
+  }
+  .toolbar-utilities .toolbar-divider {
+    display: none;
+  }
+  .workflow-tabs {
+    order: 1;
+    flex-basis: 100%;
+  }
+}

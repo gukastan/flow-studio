@@ -66,7 +66,7 @@
 }
 .workspace {
   display: grid;
-  grid-template-columns: 240px minmax(0, 1fr) 272px;
+  grid-template-columns: var(--outline-width, 240px) minmax(0, 1fr) var(--inspector-width, 272px);
   min-height: 0;
   position: relative;
 }
@@ -78,9 +78,13 @@
   overflow: hidden;
 }
 .outline {
+  grid-column: 1;
+  grid-row: 1;
   border-right: 1px solid var(--border);
 }
 .inspector {
+  grid-column: 3;
+  grid-row: 1;
   border-left: 1px solid var(--border);
 }
 .panel-heading {

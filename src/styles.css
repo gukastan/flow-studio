@@ -3,5 +3,7 @@
 @import "./styles/inspector.css";
 @import "./styles/status.css";
 @import "./styles/responsive.css";
+@import "./styles/workflows.css";
+@import "./styles/panels.css";
 @import "./styles/context-menu.css";
 @import "./styles/subgraphs.css";

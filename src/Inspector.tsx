@@ -4,6 +4,7 @@ import { ContainerActions } from "./ContainerActions";
 import { visibleRepresentative } from "./graph";
 import type { Document, Item, Link } from "./model";
 import { descendants, isSubgraph, PALETTE } from "./model";
+import { PanelToggle } from "./PanelToggle";
 import { scopeGraph } from "./scopeGraph";
 import { TextField } from "./TextField";
 import { visibleEdgeBundles } from "./visibleEdges";
@@ -23,6 +24,7 @@ type Props = {
   connectable: readonly Item[];
   onConnect: (source: string, target: string) => void;
   onReparent: (id: string, parent: string | null) => void;
+  onCollapse: () => void;
 };
 export function Inspector(props: Props) {
   const { doc, selected, edgeId } = props;
@@ -37,11 +39,12 @@ export function Inspector(props: Props) {
   const targetId = edge ? visibleRepresentative(doc, edge.target, props.scope?.id ?? null) : null;
   const blocked = node ? descendants(doc, node.id) : new Set<string>();
   return (
-    <aside className="inspector panel" aria-label="속성 편집">
+    <aside className="inspector panel" id="inspector-panel" aria-label="속성 편집">
       <div className="panel-heading">
         <SlidersHorizontal size={16} />
         <h2>속성</h2>
         <span className="count">{selected.length || (edge ? 1 : 0)}</span>
+        <PanelToggle side="inspector" expanded onClick={props.onCollapse} />
       </div>
       <div className="inspector-body">
         {node ? (

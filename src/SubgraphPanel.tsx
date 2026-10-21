@@ -3,6 +3,7 @@ import { useState } from "react";
 import { ExposedSettingsPanel } from "./ExposedSettingsPanel";
 import type { Document, Item, Port } from "./model";
 import { descendants } from "./model";
+import { PanelToggle } from "./PanelToggle";
 import { editPort, exposePort, removePort } from "./subgraphPorts";
 import { TextField } from "./TextField";
 
@@ -11,13 +12,14 @@ type Props = {
   readonly group: Item;
   readonly onCommit: (doc: Document) => void;
   readonly onClose: () => void;
+  readonly onCollapse: () => void;
 };
 function PortSection({
   doc,
   group,
   direction,
   onCommit,
-}: Omit<Props, "onClose"> & { readonly direction: Port["direction"] }) {
+}: Omit<Props, "onClose" | "onCollapse"> & { readonly direction: Port["direction"] }) {
   const [chosen, setChosen] = useState("");
   const inside = descendants(doc, group.id);
   const leaves = doc.nodes.filter((n) => inside.has(n.id) && n.kind === "node");
@@ -94,7 +96,7 @@ function PortSection({
 }
 export function SubgraphPanel(props: Props) {
   return (
-    <aside className="inspector panel" aria-label="서브그래프 입출력 편집">
+    <aside className="inspector panel" id="inspector-panel" aria-label="서브그래프 입출력 편집">
       <div className="panel-heading">
         <SlidersHorizontal size={16} />
         <h2>입력·출력</h2>
@@ -106,6 +108,7 @@ export function SubgraphPanel(props: Props) {
         >
           <ArrowLeft size={16} />
         </button>
+        <PanelToggle side="inspector" expanded onClick={props.onCollapse} />
       </div>
       <div className="inspector-body">
         <p className="port-group-name">{props.group.label}</p>

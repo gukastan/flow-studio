@@ -2,6 +2,7 @@ import { ChevronDown, ChevronRight, Layers, Search, Square } from "lucide-react"
 import { useState } from "react";
 import type { Document } from "./model";
 import { ancestors, isSubgraph } from "./model";
+import { PanelToggle } from "./PanelToggle";
 
 type Props = {
   doc: Document;
@@ -10,18 +11,28 @@ type Props = {
   onToggle: (id: string) => void;
   onFocus: (id: string) => void;
   onEnter: (id: string) => void;
+  onCollapse: () => void;
 };
-export function Outline({ doc, selected, onSelect, onToggle, onFocus, onEnter }: Props) {
+export function Outline({
+  doc,
+  selected,
+  onSelect,
+  onToggle,
+  onFocus,
+  onEnter,
+  onCollapse,
+}: Props) {
   const [search, setSearch] = useState("");
   const ordered = (parent: string | null): typeof doc.nodes =>
     doc.nodes.filter((n) => n.parent === parent).flatMap((n) => [n, ...ordered(n.id)]);
   const nodes = ordered(null).filter((n) => n.label.toLowerCase().includes(search.toLowerCase()));
   return (
-    <aside className="outline panel" aria-label="흐름도 구조">
+    <aside className="outline panel" id="outline-panel" aria-label="흐름도 구조">
       <div className="panel-heading">
         <Layers size={16} />
         <h2>구조</h2>
         <span className="count">{doc.nodes.length}</span>
+        <PanelToggle side="outline" expanded onClick={onCollapse} />
       </div>
       <div className="search-field">
         <Search size={15} />
