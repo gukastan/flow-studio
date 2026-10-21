@@ -1,4 +1,3 @@
-import { endpointPorts } from "./connectionHandles";
 import type { Document, Item, Port } from "./model";
 import { ancestors, descendants, isSubgraph } from "./model";
 
@@ -34,13 +33,12 @@ export function reconcileSubgraphs(doc: Document): Document {
         if (node && !ports.some((p) => p.direction === direction && p.nodeId === node.id))
           ports.push(newPort(node, direction));
       }
-      const rows = endpointPorts({ ...group, ports }).length;
       return {
         ...group,
         ports,
         ...(settings ? { exposedSettings: settings } : {}),
         width: 224,
-        height: Math.max(116, 82 + rows * 28) + (settings?.length ?? 0) * 44,
+        height: 88 + (settings?.length ?? 0) * 44,
       };
     }),
   };

@@ -1,4 +1,4 @@
-import type { ConnectionSide, Document, Item, Port } from "./model";
+import type { ConnectionSide, Item, Port } from "./model";
 
 export const NODE_HANDLES = {
   left: "in",
@@ -31,18 +31,4 @@ export function portHandle(group: Item, port: Port, side: ConnectionSide): strin
   let prefix = "side:";
   while (group.ports?.some((p) => p.id.startsWith(prefix))) prefix = `:${prefix}`;
   return `${prefix}${side}:${port.id}`;
-}
-
-export function endpointHandle(
-  doc: Document,
-  endpoint: {
-    readonly nodeId: string;
-    readonly visibleId: string;
-    readonly side: ConnectionSide;
-  },
-): string {
-  const visible = doc.nodes.find((node) => node.id === endpoint.visibleId);
-  const port = visible && endpointPorts(visible).find((p) => p.nodeId === endpoint.nodeId);
-  if (port && visible) return portHandle(visible, port, endpoint.side);
-  return NODE_HANDLES[endpoint.side];
 }

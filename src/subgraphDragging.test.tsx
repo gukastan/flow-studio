@@ -8,7 +8,19 @@ import { SubgraphCard } from "./SubgraphCard";
 import { starter } from "./sample";
 import { useCanvasGraph } from "./useCanvasGraph";
 
-const doc = convertToSubgraph(starter, ["g"]);
+const doc = convertToSubgraph(
+  {
+    ...starter,
+    edges: [
+      ...starter.edges,
+      { id: "ac", source: "a", target: "c", label: "", dashed: false, arrow: true },
+      { id: "bd", source: "b", target: "d", label: "", dashed: false, arrow: true },
+    ],
+  },
+  ["g"],
+);
+if (doc.nodes.find((node) => node.id === "g")?.ports?.length !== 4)
+  throw new Error("Expected two inputs and two outputs in the fixture");
 function Harness({ inner = false }: { readonly inner?: boolean }) {
   const { nodes } = useCanvasGraph({
     doc,
@@ -69,14 +81,16 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-it("allows a converted subgraph to be dragged from its title, slot labels and empty body", () => {
+it("allows a compact subgraph to be dragged from its title and body", () => {
   const node = document.getElementById("g");
   const dragHandle = node?.getAttribute("data-drag-handle");
   if (!node || !dragHandle) throw new Error("Expected rendered subgraph");
   expect(node.getAttribute("data-draggable")).toBe("true");
-  for (const selector of [".subgraph-name", ".slot-label", ".subgraph-slots", ".subgraph-card"]) {
+  for (const selector of [".subgraph-name", ".subgraph-header", ".subgraph-card"]) {
     expect(node.querySelector(selector)?.closest(dragHandle)).toBeTruthy();
   }
+  expect(node.querySelector(".subgraph-slots")).toBeNull();
+  expect(node.querySelectorAll(".react-flow__handle")).toHaveLength(4);
   for (const selector of ["button", ".react-flow__handle", "input"]) {
     expect(node.querySelector(selector)?.closest(".nodrag")).toBeTruthy();
   }
@@ -97,8 +111,10 @@ it("lets both boundary cards move from their body without becoming selectable gr
     if (!dragHandle) throw new Error("Expected boundary drag handle");
     expect(node.getAttribute("data-draggable")).toBe("true");
     expect(node.getAttribute("data-selectable")).toBe("false");
-    for (const selector of [".subgraph-name", ".slot-label", ".subgraph-slots"])
+    for (const selector of [".subgraph-name", ".subgraph-header", ".subgraph-card"])
       expect(node.querySelector(selector)?.closest(dragHandle)).toBeTruthy();
+    expect(node.querySelector(".subgraph-slots")).toBeNull();
+    expect(node.querySelectorAll(".react-flow__handle")).toHaveLength(1);
     expect(node.querySelector(".react-flow__handle")?.closest(".nodrag")).toBeTruthy();
   }
 });

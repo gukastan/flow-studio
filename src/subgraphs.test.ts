@@ -127,6 +127,40 @@ describe("subgraph slots", () => {
     expect(changed.edges.at(-1)).toMatchObject({ source: "d", target: "b" });
     expect(parseDocument(changed)).toEqual(changed);
   });
+  it("routes shared input and output points to representative internal nodes", () => {
+    const doc = converted();
+    const incoming = connectNodes(
+      doc,
+      { source: "d", sourceHandle: "out", target: "g", targetHandle: "in" },
+      null,
+    );
+    const outgoing = connectNodes(
+      incoming,
+      { source: "g", sourceHandle: "out", target: "a", targetHandle: "in" },
+      null,
+    );
+    expect(outgoing.edges.at(-2)).toMatchObject({ source: "d", target: "b" });
+    expect(outgoing.edges.at(-1)).toMatchObject({ source: "c", target: "a" });
+    expect(parseDocument(outgoing)).toEqual(outgoing);
+  });
+  it("connects a portless subgraph using its entry and exit nodes", () => {
+    const doc = convertToSubgraph({ ...starter, edges: [] }, ["g"]);
+    const incoming = connectNodes(
+      doc,
+      { source: "a", sourceHandle: "out", target: "g", targetHandle: "in" },
+      null,
+    );
+    const outgoing = connectNodes(
+      incoming,
+      { source: "g", sourceHandle: "out", target: "d", targetHandle: "in" },
+      null,
+    );
+    expect(outgoing.edges.map((edge) => [edge.source, edge.target])).toEqual([
+      ["a", "b"],
+      ["c", "d"],
+    ]);
+    expect(parseDocument(outgoing)).toEqual(outgoing);
+  });
   it("rejects manual wiring from the read-only input boundary", () => {
     // Given
     const doc = converted();

@@ -59,43 +59,6 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.slot-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 12px;
-  height: 28px;
-}
-.slot-label {
-  font-size: 11px;
-  padding-inline: 12px;
-  line-height: 28px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.slot-left {
-  grid-column: 1;
-  text-align: left;
-}
-.slot-right {
-  grid-column: 2;
-  text-align: right;
-}
-.slot-endpoint {
-  grid-column: 1 / -1;
-}
-.slot-add,
-.slot-empty {
-  color: var(--muted);
-}
-.slot-add svg {
-  vertical-align: middle;
-  margin-right: 4px;
-}
-.slot-empty {
-  font-size: 11px;
-  margin: 12px;
-}
 .port-section {
   border-top: 1px solid var(--border);
   margin-top: 24px;

@@ -1,11 +1,58 @@
 import { describe, expect, it } from "vitest";
 import { connectNodes } from "./connections";
 import { convertToSubgraph, moveItems } from "./graph";
-import { DocumentError } from "./model";
+import { DocumentError, parseDocument } from "./model";
 import { starter } from "./sample";
 import { boundaryId, scopeGraph } from "./scopeGraph";
 
 describe("external connections inside a subgraph", () => {
+  it("uses connected outer node names and leaves disconnected boundary names empty", () => {
+    const doc = convertToSubgraph(starter, ["g"]);
+    const group = doc.nodes.find((node) => node.id === "g");
+    if (!group) throw new DocumentError("Missing fixture subgraph");
+    const boundary = (current: typeof doc, direction: "input" | "output") =>
+      scopeGraph(current, group).nodes.find(
+        (node) => node.id === boundaryId(current, "g", direction),
+      );
+    expect(boundary(doc, "input")?.label).toBe("아이디어 수집");
+    expect(boundary(doc, "output")?.label).toBe("결과 완성");
+
+    const renamed = {
+      ...doc,
+      nodes: doc.nodes.map((node) => (node.id === "a" ? { ...node, label: "새 출발" } : node)),
+    };
+    expect(boundary(renamed, "input")?.label).toBe("새 출발");
+    const disconnected = { ...doc, edges: doc.edges.filter((edge) => edge.source !== "a") };
+    expect(boundary(disconnected, "input")?.label).toBe("");
+    expect(boundary(disconnected, "output")?.label).toBe("결과 완성");
+  });
+  it("converges multiple real wires onto one boundary handle per direction", () => {
+    const parallel = {
+      ...starter,
+      edges: [
+        ...starter.edges,
+        { id: "ac", source: "a", target: "c", label: "", dashed: false, arrow: true },
+        { id: "bd", source: "b", target: "d", label: "", dashed: false, arrow: true },
+      ],
+    };
+    const doc = convertToSubgraph(parallel, ["g"]);
+    const group = doc.nodes.find((node) => node.id === "g");
+    if (!group) throw new DocumentError("Missing fixture subgraph");
+    expect(group.ports?.filter((port) => port.direction === "input")).toHaveLength(2);
+    expect(group.ports?.filter((port) => port.direction === "output")).toHaveLength(2);
+    const inner = scopeGraph(doc, group);
+    expect(
+      inner.edges
+        .filter((edge) => edge.source === boundaryId(doc, "g", "input"))
+        .map((edge) => edge.sourceHandle),
+    ).toEqual(["out", "out"]);
+    expect(
+      inner.edges
+        .filter((edge) => edge.target === boundaryId(doc, "g", "output"))
+        .map((edge) => edge.targetHandle),
+    ).toEqual(["in", "in"]);
+    expect(parseDocument(doc).edges).toEqual(parallel.edges);
+  });
   it("keeps 320px of room between boundary cards and the inner nodes", () => {
     const doc = convertToSubgraph(starter, ["g"]);
     const group = doc.nodes.find((n) => n.id === "g");

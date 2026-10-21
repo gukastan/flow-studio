@@ -1,7 +1,7 @@
 import type { Connection } from "@xyflow/react";
 import { CONNECTION_SIDES, NODE_HANDLES, portHandle } from "./connectionHandles";
 import type { ConnectionSide, Document, Port } from "./model";
-import { DocumentError, isSubgraph } from "./model";
+import { DocumentError, descendants, isSubgraph } from "./model";
 import { boundaryId } from "./scopeGraph";
 import { reconcileSubgraphs } from "./subgraphPorts";
 
@@ -21,6 +21,42 @@ function endpoint(
     const side = handle ? CONNECTION_SIDES.find((s) => NODE_HANDLES[s] === handle) : defaultSide;
     if (!side) throw new DocumentError("연결점이 올바르지 않습니다.");
     return { nodeId, side };
+  }
+  const sharedSide = handle
+    ? CONNECTION_SIDES.find((side) => NODE_HANDLES[side] === handle)
+    : defaultSide;
+  if (sharedSide) {
+    const inside = descendants(doc, node.id);
+    const connected = new Set(
+      doc.edges
+        .filter((edge) =>
+          direction === "input"
+            ? !inside.has(edge.source) && inside.has(edge.target)
+            : inside.has(edge.source) && !inside.has(edge.target),
+        )
+        .map((edge) => (direction === "input" ? edge.target : edge.source)),
+    );
+    const ports = node.ports?.filter((port) => port.direction === direction) ?? [];
+    const port = ports.find((current) => connected.has(current.nodeId)) ?? ports[0];
+    const leaves = doc.nodes
+      .filter((current) => inside.has(current.id) && current.kind === "node")
+      .sort((a, b) =>
+        direction === "input"
+          ? a.position.x - b.position.x || a.position.y - b.position.y
+          : b.position.x - a.position.x || a.position.y - b.position.y,
+      );
+    const fallback =
+      leaves.find(
+        (current) =>
+          !doc.edges.some((edge) =>
+            direction === "input"
+              ? edge.target === current.id && inside.has(edge.source)
+              : edge.source === current.id && inside.has(edge.target),
+          ),
+      ) ?? leaves[0];
+    const representative = port?.nodeId ?? fallback?.id;
+    if (representative) return { nodeId: representative, side: sharedSide };
+    throw new DocumentError("서브그래프 안에 연결할 노드가 없습니다.");
   }
   for (const port of node.ports ?? []) {
     const side = handle

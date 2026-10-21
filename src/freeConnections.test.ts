@@ -119,9 +119,9 @@ describe("direction chosen by the drag", () => {
     if (!updated) throw new DocumentError("Missing updated subgraph");
     expect(endpointPorts(updated)).toHaveLength(1);
     expect(projectGraph(doc).edges.map((e) => [e.sourceHandle, e.targetHandle])).toEqual([
-      [port.id, "in"],
-      ["in", port.id],
-      [port.id, "out-bottom"],
+      ["out", "in"],
+      ["in", "out"],
+      ["out", "out-bottom"],
     ]);
     expect(scopeGraph(doc, updated).edges.map((e) => [e.source, e.target])).toEqual([
       ["a", boundaryId(doc, group.id, "output")],

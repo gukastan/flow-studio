@@ -1,4 +1,4 @@
-import { endpointHandle } from "./connectionHandles";
+import { NODE_HANDLES } from "./connectionHandles";
 import { moveItems, projectGraph, visibleRepresentative } from "./graph";
 import type { Document, Item, Point, Port } from "./model";
 import { ancestors, descendants, isSubgraph } from "./model";
@@ -55,7 +55,7 @@ export function moveScopeItems(
 export function scopeGraph(doc: Document, scope: Item | null) {
   const graph = projectGraph(doc, scope?.id ?? null);
   const boundaries = new Map<string, Port["direction"]>();
-  if (!scope) return { ...graph, boundaries, slots: new Map<string, string>() };
+  if (!scope) return { ...graph, boundaries };
   const left =
     (graph.nodes.length ? Math.min(...graph.nodes.map((n) => n.position.x)) : 0) -
     BOUNDARY_WIDTH -
@@ -65,10 +65,27 @@ export function scopeGraph(doc: Document, scope: Item | null) {
     BOUNDARY_GAP;
   const top = graph.nodes.length ? Math.min(...graph.nodes.map((n) => n.position.y)) : 0;
   const nodes = [...graph.nodes];
+  const inside = descendants(doc, scope.id);
   for (const direction of ["input", "output"] as const) {
     const id = boundaryId(doc, scope.id, direction);
     const ports = (scope.ports ?? []).filter((p) => p.direction === direction);
     const offset = scope.boundaryOffsets?.[direction];
+    const connectedNames = [
+      ...new Set(
+        doc.edges
+          .filter((edge) =>
+            direction === "input"
+              ? !inside.has(edge.source) && inside.has(edge.target)
+              : inside.has(edge.source) && !inside.has(edge.target),
+          )
+          .map((edge) => {
+            const outside = direction === "input" ? edge.source : edge.target;
+            const visible = visibleRepresentative(doc, outside, scope.parent);
+            return doc.nodes.find((node) => node.id === visible)?.label ?? "";
+          })
+          .filter(Boolean),
+      ),
+    ];
     boundaries.set(id, direction);
     nodes.push({
       ...scope,
@@ -78,17 +95,15 @@ export function scopeGraph(doc: Document, scope: Item | null) {
       collapsed: false,
       parent: null,
       ports,
-      label: direction === "input" ? "서브그래프 입력" : "서브그래프 출력",
+      label: connectedNames.join(" · "),
       width: BOUNDARY_WIDTH,
-      height: Math.max(116, 82 + ports.length * 28),
+      height: 88,
       position: offset
         ? { x: scope.position.x + offset.x, y: scope.position.y + offset.y }
         : { x: direction === "input" ? left : right, y: top },
     });
   }
-  const slots = new Map<string, string>();
   const edges = [...graph.edges];
-  const inside = descendants(doc, scope.id);
   for (const edge of doc.edges) {
     const input = !inside.has(edge.source) && inside.has(edge.target);
     const output = inside.has(edge.source) && !inside.has(edge.target);
@@ -99,27 +114,14 @@ export function scopeGraph(doc: Document, scope: Item | null) {
     if (!port) continue;
     const visible = visibleRepresentative(doc, endpoint, scope.id);
     const boundary = boundaryId(doc, scope.id, direction);
-    slots.set(edge.id, port.id);
     edges.push({
       ...edge,
       source: input ? boundary : visible,
       target: input ? visible : boundary,
-      sourceHandle: input
-        ? port.id
-        : endpointHandle(doc, {
-            nodeId: endpoint,
-            visibleId: visible,
-            side: edge.sourceSide ?? "right",
-          }),
-      targetHandle: input
-        ? endpointHandle(doc, {
-            nodeId: endpoint,
-            visibleId: visible,
-            side: edge.targetSide ?? "left",
-          })
-        : port.id,
+      sourceHandle: input ? NODE_HANDLES.right : NODE_HANDLES[edge.sourceSide ?? "right"],
+      targetHandle: input ? NODE_HANDLES[edge.targetSide ?? "left"] : NODE_HANDLES.left,
       projected: true,
     });
   }
-  return { nodes, edges, boundaries, slots };
+  return { nodes, edges, boundaries };
 }

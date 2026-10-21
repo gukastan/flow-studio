@@ -68,8 +68,9 @@ export function useCanvasGraph(options: Options) {
           onSetting: options.onSetting,
           ...(boundary ? { boundary } : {}),
         },
-        ariaLabel:
-          `${boundary ? "" : isSubgraph(item) ? "서브그래프" : item.kind === "group" ? "그룹" : "노드"} ${item.label}`.trim(),
+        ariaLabel: boundary
+          ? `서브그래프 ${boundary === "input" ? "입력" : "출력"}${item.label ? ` · ${item.label}` : ""}`
+          : `${isSubgraph(item) ? "서브그래프" : item.kind === "group" ? "그룹" : "노드"} ${item.label}`,
       };
     });
   const boxes: RouteBox[] = nodes
@@ -123,5 +124,5 @@ export function useCanvasGraph(options: Options) {
     },
     interactionWidth: 24,
   }));
-  return { nodes, edges, boundaries: graph.boundaries, slots: graph.slots, onMeasurements };
+  return { nodes, edges, boundaries: graph.boundaries, onMeasurements };
 }

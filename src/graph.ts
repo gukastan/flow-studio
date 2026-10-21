@@ -1,4 +1,4 @@
-import { endpointHandle } from "./connectionHandles";
+import { NODE_HANDLES } from "./connectionHandles";
 import type { Document, Item, Point } from "./model";
 import { ancestors, descendants, isSubgraph, newNode } from "./model";
 import { reconcileSubgraphs } from "./subgraphPorts";
@@ -155,16 +155,8 @@ export function projectGraph(doc: Document, scope: string | null = null) {
           ...e,
           source,
           target,
-          sourceHandle: endpointHandle(doc, {
-            nodeId: e.source,
-            visibleId: source,
-            side: e.sourceSide ?? "right",
-          }),
-          targetHandle: endpointHandle(doc, {
-            nodeId: e.target,
-            visibleId: target,
-            side: e.targetSide ?? "left",
-          }),
+          sourceHandle: NODE_HANDLES[e.sourceSide ?? "right"],
+          targetHandle: NODE_HANDLES[e.targetSide ?? "left"],
           projected: source !== e.source || target !== e.target,
         },
       ];

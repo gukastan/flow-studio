@@ -73,12 +73,12 @@ describe("top and bottom connection points", () => {
     if (!outerPort || !innerPort) throw new DocumentError("Missing port fixture");
     expect(projectGraph(outerDoc).edges[0]).toMatchObject({
       source: outer.id,
-      sourceHandle: verticalPortHandle(outer, outerPort.id),
+      sourceHandle: "out-bottom",
       targetHandle: "in-top",
     });
     expect(scopeGraph(outerDoc, outer).edges[0]).toMatchObject({
       source: inner.id,
-      sourceHandle: verticalPortHandle(inner, innerPort.id),
+      sourceHandle: "out-bottom",
       target: boundaryId(outerDoc, outer.id, "output"),
     });
     expect(scopeGraph(outerDoc, inner).edges[0]).toMatchObject({
