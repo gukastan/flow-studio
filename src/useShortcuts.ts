@@ -14,9 +14,16 @@ type Actions = {
 export function useShortcuts(actions: Actions) {
   useEffect(() => {
     function keydown(event: KeyboardEvent) {
-      if (event.defaultPrevented || hasOpenOverlay() || isTextEditing(event.target)) return;
-      const modifier = event.metaKey || event.ctrlKey;
       const key = event.key.toLowerCase();
+      const subgraphShortcut =
+        event.ctrlKey && !event.metaKey && key === "g" && !event.altKey && !event.shiftKey;
+      if (
+        event.defaultPrevented ||
+        hasOpenOverlay() ||
+        (isTextEditing(event.target) && !subgraphShortcut)
+      )
+        return;
+      const modifier = event.metaKey || event.ctrlKey;
       if (modifier && key === "z") {
         event.preventDefault();
         if (event.shiftKey) actions.redo();
@@ -24,15 +31,10 @@ export function useShortcuts(actions: Actions) {
       } else if (modifier && key === "s") {
         event.preventDefault();
         actions.save();
-      } else if (
-        (event.metaKey || event.ctrlKey) &&
-        key === "g" &&
-        !event.altKey &&
-        !event.shiftKey
-      ) {
+      } else if (modifier && key === "g" && !event.altKey && !event.shiftKey) {
         event.preventDefault();
         if (!event.repeat) {
-          if (event.ctrlKey) actions.subgraph();
+          if (subgraphShortcut) actions.subgraph();
           else actions.group();
         }
       } else if (modifier && key === "a") {

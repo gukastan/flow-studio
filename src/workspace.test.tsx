@@ -150,6 +150,16 @@ describe("grouping keyboard shortcuts", () => {
     // Then
     expect(document.getElementById("groups")?.textContent).toBe("1");
   });
+  it("converts selected nodes with Control+G while the name input has focus", () => {
+    const target = input("name");
+    target.focus();
+    act(() =>
+      target.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "g", ctrlKey: true, bubbles: true }),
+      ),
+    );
+    expect(document.getElementById("subgraphs")?.textContent).toBe("1");
+  });
   it("does not carry the parent card selection into its inner editor", () => {
     // Given
     act(() => document.getElementById("choose-group")?.click());
