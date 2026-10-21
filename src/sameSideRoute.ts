@@ -9,6 +9,39 @@ export type RouteBox = {
   readonly height: number;
 };
 export type EdgeRoutingData = { readonly lane: number; readonly boxes: readonly RouteBox[] };
+export function routeBoxesByNode(
+  boxes: readonly RouteBox[],
+  edges: readonly { readonly source: string; readonly target: string }[],
+): ReadonlyMap<string, readonly RouteBox[]> {
+  const neighbors = new Map<string, Set<string>>();
+  for (const edge of edges) {
+    if (!neighbors.has(edge.source)) neighbors.set(edge.source, new Set());
+    if (!neighbors.has(edge.target)) neighbors.set(edge.target, new Set());
+    neighbors.get(edge.source)?.add(edge.target);
+    neighbors.get(edge.target)?.add(edge.source);
+  }
+  const boxById = new Map(boxes.map((box) => [box.id, box]));
+  const result = new Map<string, readonly RouteBox[]>();
+  for (const box of boxes) {
+    if (result.has(box.id)) continue;
+    const visited = new Set([box.id]);
+    const pending = [box.id];
+    const related: RouteBox[] = [];
+    while (pending.length) {
+      const id = pending.pop();
+      if (!id) continue;
+      const member = boxById.get(id);
+      if (member) related.push(member);
+      for (const next of neighbors.get(id) ?? []) {
+        if (visited.has(next)) continue;
+        visited.add(next);
+        pending.push(next);
+      }
+    }
+    for (const id of visited) result.set(id, related);
+  }
+  return result;
+}
 type Endpoint = Point & { readonly id: string };
 type Options = {
   readonly source: Endpoint;

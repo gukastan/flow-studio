@@ -2,7 +2,7 @@ import { Position } from "@xyflow/react";
 import { describe, expect, it } from "vitest";
 import type { Point } from "./model";
 import type { RouteBox } from "./sameSideRoute";
-import { sameSideRoute } from "./sameSideRoute";
+import { routeBoxesByNode, sameSideRoute } from "./sameSideRoute";
 
 function sample(path: string): Point[] {
   const numbers = (path.match(/-?\d+(?:\.\d+)?(?:e[+-]?\d+)?/gi) ?? []).map(Number);
@@ -46,6 +46,44 @@ const transforms = [
 ];
 
 describe("same-side return spline", () => {
+  it("keeps an existing return route fixed when an unrelated node is added beneath it", () => {
+    const edges = [
+      { source: "a", target: "b" },
+      { source: "b", target: "c" },
+      { source: "c", target: "d" },
+      { source: "d", target: "a" },
+    ];
+    const options = {
+      source: { id: "d", x: 1072, y: 88 },
+      target: { id: "a", x: 112, y: 88 },
+      side: Position.Bottom,
+      lane: 0,
+    };
+    const original = sameSideRoute({
+      ...options,
+      boxes: routeBoxesByNode(row, edges).get("d") ?? [],
+    });
+    const withNewNode = sameSideRoute({
+      ...options,
+      boxes:
+        routeBoxesByNode(
+          [...row, { id: "new", x: 400, y: 160, width: 224, height: 88 }],
+          edges,
+        ).get("d") ?? [],
+    });
+    expect(withNewNode).toEqual(original);
+  });
+
+  it("still clears a connected card in the same flow", () => {
+    const boxes = routeBoxesByNode(row, [
+      { source: "a", target: "b" },
+      { source: "b", target: "c" },
+      { source: "c", target: "d" },
+      { source: "d", target: "a" },
+    ]).get("d");
+    expect(boxes?.map((box) => box.id).sort()).toEqual(["a", "b", "c", "d"]);
+  });
+
   it.each(transforms)(
     "clears intermediate cards and approaches $side handles from outside",
     ({ side, point, outward }) => {

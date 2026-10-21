@@ -6,7 +6,7 @@ import type { SettingChange } from "./exposedSettings";
 import { resolveSettings } from "./exposedSettings";
 import type { Document, Item } from "./model";
 import { ancestors, descendants, isSubgraph } from "./model";
-import type { RouteBox } from "./sameSideRoute";
+import { type RouteBox, routeBoxesByNode } from "./sameSideRoute";
 import { scopeGraph } from "./scopeGraph";
 
 type Options = {
@@ -84,6 +84,7 @@ export function useCanvasGraph(options: Options) {
       width: node.measured?.width ?? node.width ?? 224,
       height: node.measured?.height ?? node.height ?? 88,
     }));
+  const boxesByNode = routeBoxesByNode(boxes, graph.edges);
   const selectedEdges = new Set(edgeIds);
   const edges: Edge[] = graph.edges.map((edge, index) => ({
     id: edge.id,
@@ -94,7 +95,7 @@ export function useCanvasGraph(options: Options) {
     label: edge.label,
     type: "flow",
     data: {
-      boxes,
+      boxes: boxesByNode.get(edge.source) ?? [],
       lane: graph.edges
         .slice(0, index)
         .filter(
