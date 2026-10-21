@@ -15,8 +15,9 @@ export function useShortcuts(actions: Actions) {
   useEffect(() => {
     function keydown(event: KeyboardEvent) {
       const key = event.key.toLowerCase();
+      const groupKey = event.code === "KeyG" || key === "g";
       const subgraphShortcut =
-        event.ctrlKey && !event.metaKey && key === "g" && !event.altKey && !event.shiftKey;
+        event.ctrlKey && !event.metaKey && groupKey && !event.altKey && !event.shiftKey;
       if (
         event.defaultPrevented ||
         hasOpenOverlay() ||
@@ -31,7 +32,7 @@ export function useShortcuts(actions: Actions) {
       } else if (modifier && key === "s") {
         event.preventDefault();
         actions.save();
-      } else if (modifier && key === "g" && !event.altKey && !event.shiftKey) {
+      } else if (modifier && groupKey && !event.altKey && !event.shiftKey) {
         event.preventDefault();
         if (!event.repeat) {
           if (subgraphShortcut) actions.subgraph();

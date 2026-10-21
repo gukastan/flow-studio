@@ -160,6 +160,20 @@ describe("grouping keyboard shortcuts", () => {
     );
     expect(document.getElementById("subgraphs")?.textContent).toBe("1");
   });
+  it("recognizes the physical G key with a Korean keyboard layout", () => {
+    const target = input("selection");
+    act(() =>
+      target.dispatchEvent(
+        new KeyboardEvent("keydown", {
+          key: "ㅎ",
+          code: "KeyG",
+          ctrlKey: true,
+          bubbles: true,
+        }),
+      ),
+    );
+    expect(document.getElementById("subgraphs")?.textContent).toBe("1");
+  });
   it("does not carry the parent card selection into its inner editor", () => {
     // Given
     act(() => document.getElementById("choose-group")?.click());
