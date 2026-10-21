@@ -22,6 +22,17 @@ function boundary(current: Document, direction: Port["direction"], scope = "g") 
 }
 
 describe("manual subgraph boundary placement", () => {
+  it("keeps default boundary cards fixed when only one inner node is dragged", () => {
+    const input = boundary(doc, "input");
+    const output = boundary(doc, "output");
+    const moved = moveScopeItems(doc, new Map([["c", { x: 1200, y: 400 }]]), "g");
+    expect(boundary(moved, "input")).toEqual(input);
+    expect(boundary(moved, "output")).toEqual(output);
+    expect(moved.nodes.find((n) => n.id === "c")?.position).toEqual({ x: 1200, y: 400 });
+    expect(moved.nodes.find((n) => n.id === "b")?.position).toEqual(
+      doc.nodes.find((n) => n.id === "b")?.position,
+    );
+  });
   it("moves either boundary independently without inserting nodes or changing connections", () => {
     const input = positions.get(boundaryId(doc, "g", "input"));
     if (!input) throw new DocumentError("Missing fixture input");

@@ -53,7 +53,7 @@ describe("external connections inside a subgraph", () => {
     ).toEqual(["in", "in"]);
     expect(parseDocument(doc).edges).toEqual(parallel.edges);
   });
-  it("keeps 320px of room between boundary cards and the inner nodes", () => {
+  it("keeps 160px of room and vertically centers boundary cards beside the inner nodes", () => {
     const doc = convertToSubgraph(starter, ["g"]);
     const group = doc.nodes.find((n) => n.id === "g");
     if (!group) throw new DocumentError("Missing fixture subgraph");
@@ -74,8 +74,12 @@ describe("external connections inside a subgraph", () => {
       if (!input || !output) throw new DocumentError("Missing fixture boundaries");
       const left = Math.min(...inner.map((n) => n.position.x));
       const right = Math.max(...inner.map((n) => n.position.x + n.width));
-      expect(left - input.position.x - input.width).toBe(320);
-      expect(output.position.x - right).toBe(320);
+      const top = Math.min(...inner.map((n) => n.position.y));
+      const bottom = Math.max(...inner.map((n) => n.position.y + n.height));
+      expect(left - input.position.x - input.width).toBe(160);
+      expect(output.position.x - right).toBe(160);
+      expect(input.position.y + input.height / 2).toBe((top + bottom) / 2);
+      expect(output.position.y + output.height / 2).toBe((top + bottom) / 2);
       expect(inner).toEqual(current.nodes.filter((n) => n.parent === group.id));
       expect(view.edges.map((e) => e.id).sort()).toEqual(current.edges.map((e) => e.id).sort());
     }

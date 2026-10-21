@@ -4,7 +4,8 @@ import type { Document, Item, Point, Port } from "./model";
 import { ancestors, descendants, isSubgraph } from "./model";
 
 const BOUNDARY_WIDTH = 224;
-const BOUNDARY_GAP = 320;
+const BOUNDARY_HEIGHT = 88;
+const BOUNDARY_GAP = 160;
 
 export function scopeDocument(doc: Document, scope: string | null): Document {
   const within = scope ? descendants(doc, scope) : new Set(doc.nodes.map((n) => n.id));
@@ -32,11 +33,17 @@ export function moveScopeItems(
 ): Document {
   const moved = moveItems(doc, positions);
   const scope = moved.nodes.find((n) => n.id === scopeId);
-  if (!scope || !isSubgraph(scope)) return moved;
+  if (!scope || !isSubgraph(scope) || !positions.size) return moved;
   const offsets = { ...scope.boundaryOffsets };
+  const original = doc.nodes.find((n) => n.id === scope.id);
+  const initial =
+    original && (!offsets.input || !offsets.output) ? scopeGraph(doc, original) : null;
   let changed = false;
   for (const direction of ["input", "output"] as const) {
-    const position = positions.get(boundaryId(doc, scope.id, direction));
+    const id = boundaryId(doc, scope.id, direction);
+    const position =
+      positions.get(id) ??
+      (offsets[direction] ? undefined : initial?.nodes.find((node) => node.id === id)?.position);
     if (!position) continue;
     offsets[direction] = {
       x: position.x - scope.position.x,
@@ -63,7 +70,12 @@ export function scopeGraph(doc: Document, scope: Item | null) {
   const right =
     (graph.nodes.length ? Math.max(...graph.nodes.map((n) => n.position.x + n.width)) : 300) +
     BOUNDARY_GAP;
-  const top = graph.nodes.length ? Math.min(...graph.nodes.map((n) => n.position.y)) : 0;
+  const top = graph.nodes.length
+    ? (Math.min(...graph.nodes.map((n) => n.position.y)) +
+        Math.max(...graph.nodes.map((n) => n.position.y + n.height)) -
+        BOUNDARY_HEIGHT) /
+      2
+    : 0;
   const nodes = [...graph.nodes];
   const inside = descendants(doc, scope.id);
   for (const direction of ["input", "output"] as const) {
@@ -97,7 +109,7 @@ export function scopeGraph(doc: Document, scope: Item | null) {
       ports,
       label: connectedNames.join(" · "),
       width: BOUNDARY_WIDTH,
-      height: 88,
+      height: BOUNDARY_HEIGHT,
       position: offset
         ? { x: scope.position.x + offset.x, y: scope.position.y + offset.y }
         : { x: direction === "input" ? left : right, y: top },

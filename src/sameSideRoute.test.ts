@@ -2,7 +2,11 @@ import { Position } from "@xyflow/react";
 import { describe, expect, it } from "vitest";
 import type { Point } from "./model";
 import type { RouteBox } from "./sameSideRoute";
-import { routeBoxesByNode, sameSideRoute } from "./sameSideRoute";
+import { routeBoxesForEdge, sameSideRoute } from "./sameSideRoute";
+
+function edgeBoxes(boxes: readonly RouteBox[], source: string, target: string) {
+  return routeBoxesForEdge(new Map(boxes.map((box) => [box.id, box])), { source, target });
+}
 
 function sample(path: string): Point[] {
   const numbers = (path.match(/-?\d+(?:\.\d+)?(?:e[+-]?\d+)?/gi) ?? []).map(Number);
@@ -47,12 +51,6 @@ const transforms = [
 
 describe("same-side return spline", () => {
   it("keeps an existing return route fixed when an unrelated node is added beneath it", () => {
-    const edges = [
-      { source: "a", target: "b" },
-      { source: "b", target: "c" },
-      { source: "c", target: "d" },
-      { source: "d", target: "a" },
-    ];
     const options = {
       source: { id: "d", x: 1072, y: 88 },
       target: { id: "a", x: 112, y: 88 },
@@ -61,27 +59,40 @@ describe("same-side return spline", () => {
     };
     const original = sameSideRoute({
       ...options,
-      boxes: routeBoxesByNode(row, edges).get("d") ?? [],
+      boxes: edgeBoxes(row, "d", "a"),
     });
     const withNewNode = sameSideRoute({
       ...options,
-      boxes:
-        routeBoxesByNode(
-          [...row, { id: "new", x: 400, y: 160, width: 224, height: 88 }],
-          edges,
-        ).get("d") ?? [],
+      boxes: edgeBoxes([...row, { id: "new", x: 400, y: 160, width: 224, height: 88 }], "d", "a"),
     });
     expect(withNewNode).toEqual(original);
   });
 
-  it("still clears a connected card in the same flow", () => {
-    const boxes = routeBoxesByNode(row, [
-      { source: "a", target: "b" },
-      { source: "b", target: "c" },
-      { source: "c", target: "d" },
-      { source: "d", target: "a" },
-    ]).get("d");
-    expect(boxes?.map((box) => box.id).sort()).toEqual(["a", "b", "c", "d"]);
+  it("does not shift a return route when a connected middle card moves", () => {
+    const options = {
+      source: { id: "d", x: 1072, y: 88 },
+      target: { id: "a", x: 112, y: 88 },
+      side: Position.Bottom,
+      lane: 0,
+    };
+    const original = sameSideRoute({
+      ...options,
+      boxes: edgeBoxes(row, "d", "a"),
+    });
+    const moved = sameSideRoute({
+      ...options,
+      boxes: edgeBoxes(
+        row.map((box) => (box.id === "b" ? { ...box, y: 180 } : box)),
+        "d",
+        "a",
+      ),
+    });
+    expect(moved).toEqual(original);
+  });
+
+  it("keeps only the edge endpoints as route obstacles", () => {
+    const boxes = edgeBoxes(row, "d", "a");
+    expect(boxes.map((box) => box.id).sort()).toEqual(["a", "d"]);
   });
 
   it.each(transforms)(
