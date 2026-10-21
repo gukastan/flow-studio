@@ -1,7 +1,7 @@
 import { toBlob } from "html-to-image";
 import type { Document } from "./model";
 import { DocumentError } from "./model";
-import { embedProject } from "./pngProject";
+import { embedPortableProject } from "./portablePng";
 
 export async function exportImage(doc: Document): Promise<Blob> {
   const viewport = document.querySelector<HTMLElement>(".canvas-region .react-flow__viewport");
@@ -33,7 +33,7 @@ export async function exportImage(doc: Document): Promise<Blob> {
     filter: (element) => !element.classList?.contains("react-flow__nodesselection"),
   });
   if (!image) throw new DocumentError("이미지를 만들지 못했습니다. 다시 시도해 주세요.");
-  return new Blob([embedProject(new Uint8Array(await image.arrayBuffer()), doc)], {
+  return new Blob([await embedPortableProject(new Uint8Array(await image.arrayBuffer()), doc)], {
     type: "image/png",
   });
 }

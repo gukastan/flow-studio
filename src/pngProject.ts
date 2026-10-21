@@ -5,6 +5,8 @@ const signature = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]);
 const encoder = new TextEncoder();
 const decoder = new TextDecoder("utf-8", { fatal: true });
 const keyword = "Flow Studio";
+const pixelMagic = encoder.encode("FlowPx01");
+const pixelHeaderLength = 16;
 export const projectByteLimit = 5_000_000;
 const crcTable = Uint32Array.from({ length: 256 }, (_, index) => {
   let value = index;
@@ -71,11 +73,15 @@ export function embedProject(png: Uint8Array, doc: Document): Uint8Array<ArrayBu
   return result;
 }
 export function extractProject(png: Uint8Array): Document {
+  const project = readEmbeddedProject(png);
+  if (project) return project;
+  throw new DocumentError(
+    "편집 데이터가 없는 이미지입니다. Flow Studio에서 저장한 PNG를 선택해 주세요.",
+  );
+}
+export function readEmbeddedProject(png: Uint8Array): Document | null {
   const entries = chunks(png).filter(isProjectChunk);
-  if (!entries.length)
-    throw new DocumentError(
-      "편집 데이터가 없는 이미지입니다. Flow Studio에서 저장한 PNG를 선택해 주세요.",
-    );
+  if (!entries.length) return null;
   if (entries.length !== 1) throw new DocumentError("PNG에 프로젝트 데이터가 중복되어 있습니다.");
   const data = entries[0]?.data;
   if (!data || data.length > projectByteLimit + 100)
@@ -90,4 +96,51 @@ export function extractProject(png: Uint8Array): Document {
     offset = end + 1;
   }
   return parseDocument(JSON.parse(decoder.decode(data.subarray(offset))));
+}
+
+function pixelChannel(bitIndex: number): number {
+  return Math.floor(bitIndex / 3) * 4 + (bitIndex % 3);
+}
+function readPixelByte(pixels: Uint8ClampedArray, byteIndex: number): number {
+  let value = 0;
+  for (let bit = 0; bit < 8; bit++)
+    value = (value << 1) | ((pixels[pixelChannel(byteIndex * 8 + bit)] ?? 0) & 1);
+  return value;
+}
+export function writeProjectPixels(pixels: Uint8ClampedArray, doc: Document): void {
+  const project = encoder.encode(JSON.stringify(doc));
+  if (project.length > projectByteLimit)
+    throw new DocumentError("편집 데이터는 5MB까지 저장할 수 있습니다.");
+  const bytes = new Uint8Array(pixelHeaderLength + project.length);
+  bytes.set(pixelMagic);
+  const header = new DataView(bytes.buffer);
+  header.setUint32(8, project.length);
+  header.setUint32(12, crc32(project));
+  bytes.set(project, pixelHeaderLength);
+  if ((pixels.length / 4) * 3 < bytes.length * 8)
+    throw new DocumentError("이미지 크기에 비해 편집 데이터가 많습니다. JSON으로 저장해 주세요.");
+  for (let byteIndex = 0; byteIndex < bytes.length; byteIndex++) {
+    const value = bytes[byteIndex] ?? 0;
+    for (let bit = 0; bit < 8; bit++) {
+      const channel = pixelChannel(byteIndex * 8 + bit);
+      pixels[channel] = ((pixels[channel] ?? 0) & 254) | ((value >>> (7 - bit)) & 1);
+    }
+  }
+}
+export function readProjectPixels(pixels: Uint8ClampedArray): Document | null {
+  if ((pixels.length / 4) * 3 < pixelHeaderLength * 8) return null;
+  if (pixelMagic.some((byte, index) => readPixelByte(pixels, index) !== byte)) return null;
+  const header = new Uint8Array(pixelHeaderLength);
+  for (let index = 8; index < pixelHeaderLength; index++)
+    header[index] = readPixelByte(pixels, index);
+  const view = new DataView(header.buffer);
+  const length = view.getUint32(8);
+  if (length > projectByteLimit || (pixels.length / 4) * 3 < (pixelHeaderLength + length) * 8)
+    throw new DocumentError("이미지의 편집 데이터가 손상되었습니다.");
+  const project = new Uint8Array(length);
+  for (let index = 0; index < length; index++)
+    project[index] = readPixelByte(pixels, pixelHeaderLength + index);
+  if (crc32(project) !== view.getUint32(12))
+    throw new DocumentError("이미지의 편집 데이터가 손상되었습니다.");
+  return parseDocument(JSON.parse(decoder.decode(project)));
 }

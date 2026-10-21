@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { convertToSubgraph } from "./graph";
 import { emptyDocument, newNode } from "./model";
-import { embedProject, extractProject } from "./pngProject";
+import { embedProject, extractProject, readProjectPixels, writeProjectPixels } from "./pngProject";
 
 const png = Uint8Array.from(
   atob(
@@ -36,6 +36,26 @@ const doc = convertToSubgraph(
 );
 
 describe("editable PNG", () => {
+  it("restores a project from image pixels after PNG metadata is removed", () => {
+    const size = Math.ceil(((16 + new TextEncoder().encode(JSON.stringify(doc)).length) * 8) / 3);
+    const pixels = new Uint8ClampedArray((size + 1) * 4).fill(100);
+    for (let index = 3; index < pixels.length; index += 4) pixels[index] = 255;
+    writeProjectPixels(pixels, doc);
+    expect(readProjectPixels(pixels)).toEqual(doc);
+    expect(
+      pixels.every((value, index) =>
+        index % 4 === 3 ? value === 255 : Math.abs(value - 100) <= 1,
+      ),
+    ).toBe(true);
+  });
+  it("rejects damaged pixel data and images too small to hold the project", () => {
+    const pixels = new Uint8ClampedArray(20_000).fill(100);
+    writeProjectPixels(pixels, emptyDocument);
+    pixels[172] = (pixels[172] ?? 0) ^ 1;
+    expect(() => readProjectPixels(pixels)).toThrow("손상");
+    expect(() => writeProjectPixels(new Uint8ClampedArray(4), doc)).toThrow("이미지 크기");
+    expect(readProjectPixels(new Uint8ClampedArray(4))).toBeNull();
+  });
   it("round trips Korean labels, coordinates, colors, subgraphs, ports and connection sides", () => {
     expect(extractProject(embedProject(png, doc))).toEqual(doc);
   });

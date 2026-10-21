@@ -1,6 +1,7 @@
 import type { Document } from "./model";
 import { DocumentError, parseDocument } from "./model";
-import { extractProject, isPng, projectByteLimit } from "./pngProject";
+import { isPng, projectByteLimit } from "./pngProject";
+import { extractPortableProject } from "./portablePng";
 import { starter } from "./sample";
 
 const STORAGE_KEY = "flow-studio.document.v1";
@@ -45,7 +46,7 @@ export async function readProject(file: File): Promise<Document> {
   if (file.size > 40_000_000)
     throw new DocumentError("40MB 이하의 PNG 또는 JSON 파일을 선택해 주세요.");
   const bytes = new Uint8Array(await file.arrayBuffer());
-  if (isPng(bytes)) return extractProject(bytes);
+  if (isPng(bytes)) return extractPortableProject(bytes);
   if (file.size > projectByteLimit)
     throw new DocumentError("JSON 파일은 5MB 이하로 선택해 주세요.");
   if (!/\.json$/i.test(file.name))
