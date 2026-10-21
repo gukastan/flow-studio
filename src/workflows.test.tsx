@@ -8,7 +8,7 @@ import { WorkflowTabs } from "./WorkflowTabs";
 import { loadWorkflows } from "./workflowStorage";
 
 let history: ReturnType<typeof useDocument>;
-function Harness() {
+function Harness({ canClose = true }: { canClose?: boolean }) {
   history = useDocument();
   return (
     <WorkflowTabs
@@ -16,6 +16,11 @@ function Harness() {
       activeId={history.activeId}
       onSelect={history.selectWorkflow}
       onAdd={history.addWorkflow}
+      onClose={(id) => {
+        if (!canClose) return false;
+        history.closeWorkflow(id);
+        return true;
+      }}
     />
   );
 }
@@ -142,5 +147,110 @@ describe("workflow tabs", () => {
     act(() => history.undo());
     expect(history.doc).toEqual(emptyDocument);
     expect(history.canUndo).toBe(false);
+  });
+
+  it("closes an inactive tab without switching or altering the active document history", () => {
+    // Given
+    const first = history.activeId;
+    act(() => history.addWorkflow());
+    const second = history.activeId;
+    act(() => history.commit({ ...history.doc, title: "현재 작업" }));
+    const currentDoc = history.doc;
+    // When
+    act(() => button(`#workflow-tab-${first} + button`).click());
+    // Then
+    expect(history.workflows.map((item) => item.id)).toEqual([second]);
+    expect(history.activeId).toBe(second);
+    expect(history.doc).toBe(currentDoc);
+    expect(history.canUndo).toBe(true);
+    expect(document.activeElement?.id).toBe(`workflow-tab-${second}`);
+  });
+
+  it.each([
+    { closed: 1, next: 2 },
+    { closed: 2, next: 1 },
+  ])("selects neighbor $next when active tab $closed is closed", ({ closed, next }) => {
+    // Given
+    act(() => history.addWorkflow());
+    act(() => history.addWorkflow());
+    const ids = history.workflows.map((item) => item.id);
+    const closingId = ids[closed];
+    if (!closingId) throw new DocumentError("Missing workflow fixture");
+    act(() => history.selectWorkflow(closingId));
+    // When
+    act(() => button(`#workflow-tab-${closingId} + button`).click());
+    // Then
+    expect(history.activeId).toBe(ids[next]);
+    expect(history.workflows).toHaveLength(2);
+    expect(document.activeElement?.id).toBe(`workflow-tab-${ids[next]}`);
+  });
+
+  it("replaces the last closed tab with a blank workflow and fresh history", () => {
+    // Given
+    const closed = history.activeId;
+    act(() => history.commit({ ...history.doc, nodes: [newNode({ x: 20, y: 30 })] }));
+    // When
+    act(() => button(`#workflow-tab-${closed} + button`).click());
+    // Then
+    expect(history.activeId).not.toBe(closed);
+    expect(history.workflows).toHaveLength(1);
+    expect(history.doc).toEqual({ ...emptyDocument, title: "워크플로우 1" });
+    expect(history.canUndo).toBe(false);
+    expect(history.canRedo).toBe(false);
+  });
+
+  it("does not restore closed tabs from browser storage", () => {
+    // Given
+    const first = history.activeId;
+    act(() => history.addWorkflow());
+    act(() => vi.advanceTimersByTime(400));
+    // When
+    act(() => history.closeWorkflow(history.activeId));
+    act(() => vi.advanceTimersByTime(400));
+    act(() => root.unmount());
+    root = createRoot(container);
+    act(() => root.render(<Harness />));
+    // Then
+    expect(history.activeId).toBe(first);
+    expect(history.workflows.map((item) => item.id)).toEqual([first]);
+  });
+
+  it("keeps a tab and its contents when closing is cancelled", () => {
+    // Given
+    act(() => root.render(<Harness canClose={false} />));
+    const original = history.doc;
+    const id = history.activeId;
+    // When
+    act(() => button(`#workflow-tab-${id} + button`).click());
+    // Then
+    expect(history.activeId).toBe(id);
+    expect(history.doc).toBe(original);
+    expect(history.workflows).toHaveLength(1);
+  });
+
+  it("closes the focused tab with Delete without selecting another tab first", () => {
+    // Given
+    const first = history.activeId;
+    act(() => history.addWorkflow());
+    const target = button('[aria-selected="true"]');
+    target.focus();
+    // When
+    act(() => target.dispatchEvent(new KeyboardEvent("keydown", { key: "Delete", bubbles: true })));
+    // Then
+    expect(history.activeId).toBe(first);
+    expect(history.workflows).toHaveLength(1);
+    expect(document.activeElement?.id).toBe(`workflow-tab-${first}`);
+  });
+
+  it("ignores a late import for a closed workflow", () => {
+    // Given
+    const finishImport = history.commit;
+    act(() => history.closeWorkflow(history.activeId));
+    const blank = history.doc;
+    // When
+    act(() => finishImport({ ...emptyDocument, title: "늦게 도착한 문서" }));
+    // Then
+    expect(history.doc).toBe(blank);
+    expect(history.workflows).toHaveLength(1);
   });
 });

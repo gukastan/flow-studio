@@ -13,6 +13,16 @@ type History = Workflow & {
 };
 type Session = { readonly activeId: string; readonly items: readonly History[] };
 
+function createWorkflow(title: string): History {
+  return {
+    id: crypto.randomUUID(),
+    doc: { ...emptyDocument, title },
+    past: [],
+    future: [],
+    dragStart: null,
+  };
+}
+
 export function useDocument() {
   const [initial] = useState(loadWorkflows);
   const [session, setSession] = useState<Session>(() => ({
@@ -113,22 +123,29 @@ export function useDocument() {
     update((value) => {
       let number = value.items.length + 1;
       while (value.items.some((item) => item.doc.title === `워크플로우 ${number}`)) number += 1;
-      const id = crypto.randomUUID();
+      const workflow = createWorkflow(`워크플로우 ${number}`);
       return {
-        activeId: id,
-        items: [
-          ...value.items,
-          {
-            id,
-            doc: { ...emptyDocument, title: `워크플로우 ${number}` },
-            past: [],
-            future: [],
-            dragStart: null,
-          },
-        ],
+        activeId: workflow.id,
+        items: [...value.items, workflow],
       };
     });
   }, [update]);
+  const closeWorkflow = useCallback(
+    (id: string) => {
+      update((value) => {
+        const index = value.items.findIndex((item) => item.id === id);
+        if (index < 0) return value;
+        const items = value.items.filter((item) => item.id !== id);
+        const neighbor = items[index] ?? items[index - 1];
+        if (!neighbor) {
+          const workflow = createWorkflow("워크플로우 1");
+          return { activeId: workflow.id, items: [workflow] };
+        }
+        return { activeId: value.activeId === id ? neighbor.id : value.activeId, items };
+      });
+    },
+    [update],
+  );
   useEffect(() => {
     function save(value: Session) {
       setWarning(
@@ -158,8 +175,13 @@ export function useDocument() {
     canUndo: active.past.length > 0,
     canRedo: active.future.length > 0,
     activeId,
-    workflows: session.items.map(({ id, doc }) => ({ id, title: doc.title })),
+    workflows: session.items.map(({ id, doc }) => ({
+      id,
+      title: doc.title,
+      hasContent: doc.nodes.length > 0 || doc.edges.length > 0,
+    })),
     selectWorkflow,
     addWorkflow,
+    closeWorkflow,
   };
 }

@@ -24,9 +24,18 @@
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
 }
-.toolbar .workflow-tab {
+.workflow-tab-item {
+  display: flex;
+  align-items: center;
   flex-shrink: 0;
   max-width: 240px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+}
+.toolbar .workflow-tab {
+  min-width: 0;
+  flex-shrink: 1;
+  border: 0;
   color: var(--muted);
 }
 .workflow-tab span {
@@ -36,15 +45,30 @@
 .workflow-tab svg {
   flex-shrink: 0;
 }
-.toolbar .workflow-tab[aria-selected="true"] {
+.workflow-tab-item[data-active="true"] {
   background: var(--elevated);
   border-color: var(--border);
+}
+.toolbar .workflow-tab[aria-selected="true"] {
   color: var(--text);
 }
 .workflow-tab[aria-selected="true"] svg {
   color: var(--accent);
 }
+.toolbar .workflow-close {
+  color: var(--muted);
+}
+.toolbar .workflow-close:hover {
+  color: var(--text);
+  background: var(--border);
+}
 @media (max-width: 700px) {
+  .toolbar .workflow-tab {
+    flex-shrink: 1;
+  }
+  .toolbar .workflow-close {
+    width: 44px;
+  }
   .app {
     grid-template-rows: 64px 112px minmax(0, 1fr) 32px;
   }

@@ -62,8 +62,7 @@ export function App() {
     });
   }
   const portsGroup = doc.nodes.find((n) => n.id === workspace.portsGroupId && isSubgraph(n));
-  function switchWorkflow(id?: string) {
-    if (id === history.activeId) return;
+  function resetWorkflowView() {
     menu.close();
     select([]);
     navigation.navigate(null);
@@ -71,8 +70,26 @@ export function App() {
     setImporting(false);
     workspace.setSaving(false);
     setNotice("");
+  }
+  function switchWorkflow(id?: string) {
+    if (id === history.activeId) return;
+    resetWorkflowView();
     if (id) history.selectWorkflow(id);
     else history.addWorkflow();
+  }
+  function closeWorkflow(id: string) {
+    const workflow = history.workflows.find((item) => item.id === id);
+    if (!workflow) return false;
+    if (
+      workflow.hasContent &&
+      !window.confirm(
+        `“${workflow.title}” 탭을 닫을까요?\n닫으면 이 탭의 자동 저장 내용이 삭제됩니다. 필요한 작업은 먼저 파일로 저장해 주세요.`,
+      )
+    )
+      return false;
+    if (id === history.activeId) resetWorkflowView();
+    history.closeWorkflow(id);
+    return true;
   }
   return (
     <div className={`app ${drawer ? `show-${drawer}` : ""}`} data-theme={theme}>
@@ -85,6 +102,7 @@ export function App() {
           activeId: history.activeId,
           onSelect: switchWorkflow,
           onAdd: () => switchWorkflow(),
+          onClose: closeWorkflow,
         }}
         theme={theme}
         onTitle={(title) => {
