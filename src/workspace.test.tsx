@@ -12,6 +12,7 @@ function Harness() {
       <input id="selection" type="checkbox" onChange={() => workspace.select(["a", "d"])} />
       <input id="name" type="text" defaultValue="Example" />
       <output id="groups">{workspace.doc.nodes.filter((n) => n.kind === "group").length}</output>
+      <output id="subgraphs">{workspace.doc.nodes.filter((n) => n.subgraph).length}</output>
       <output id="selected">{workspace.selected.join(",")}</output>
       <output id="scope">{workspace.navigation.scope?.id}</output>
       <output id="edges">{workspace.doc.edges.length}</output>
@@ -89,6 +90,35 @@ describe("grouping keyboard shortcuts", () => {
     );
     // Then
     expect(document.getElementById("groups")?.textContent).toBe("2");
+    expect(document.getElementById("subgraphs")?.textContent).toBe("0");
+  });
+  it("uses Control+G to convert a selection and then unpack its selected subgraph", () => {
+    const target = input("selection");
+    const shortcut = () =>
+      target.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "g", ctrlKey: true, bubbles: true }),
+      );
+    act(shortcut);
+    expect(document.getElementById("subgraphs")?.textContent).toBe("1");
+    expect(document.getElementById("groups")?.textContent).toBe("2");
+    act(shortcut);
+    expect(document.getElementById("subgraphs")?.textContent).toBe("0");
+    expect(document.getElementById("groups")?.textContent).toBe("1");
+    expect(document.getElementById("selected")?.textContent).toBe("a,d");
+  });
+  it("does not unpack a selected subgraph with Command+G", () => {
+    const target = input("selection");
+    act(() =>
+      target.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "g", ctrlKey: true, bubbles: true }),
+      ),
+    );
+    act(() =>
+      target.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "g", metaKey: true, bubbles: true }),
+      ),
+    );
+    expect(document.getElementById("subgraphs")?.textContent).toBe("1");
   });
   it("ignores held-key repeat instead of repeatedly toggling groups", () => {
     // Given

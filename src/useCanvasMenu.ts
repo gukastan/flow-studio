@@ -44,9 +44,10 @@ export function useCanvasMenu(workspace: ReturnType<typeof useWorkspace>) {
         title = single?.label || `${roots.length}개 항목 선택`;
         entries = [
           {
-            label: "서브그래프로 변환",
+            label: isSubgraph(group) ? "서브그래프 풀기" : "서브그래프로 변환",
             action: workspace.subgraph,
-            disabled: !canGroup || isSubgraph(group),
+            disabled: !canGroup,
+            shortcut: "Ctrl G",
           },
           ...(group && isSubgraph(group)
             ? [
@@ -66,10 +67,10 @@ export function useCanvasMenu(workspace: ReturnType<typeof useWorkspace>) {
               ]
             : []),
           {
-            label: isSubgraph(group) ? "서브그래프 풀기" : group ? "그룹 해제" : "그룹화",
+            label: group && !isSubgraph(group) ? "그룹 해제" : "그룹화",
             action: workspace.group,
-            disabled: !canGroup,
-            shortcut: "⌘/Ctrl G",
+            disabled: !canGroup || isSubgraph(group),
+            shortcut: "⌘ G",
           },
           { label: "복제", action: workspace.clipboard.duplicate, separator: true },
           {
@@ -129,7 +130,7 @@ export function useCanvasMenu(workspace: ReturnType<typeof useWorkspace>) {
           },
           {
             label: "노드 유형",
-            disabled: roots.some((n) => n.kind === "group"),
+            disabled: roots.some((n) => n.kind === "group" && !isSubgraph(n)),
             children: [
               { label: "프로세스", action: () => workspace.patch({ shape: "process" }) },
               { label: "조건 / 분기", action: () => workspace.patch({ shape: "decision" }) },

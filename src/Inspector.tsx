@@ -16,7 +16,6 @@ type Props = {
   onUngroup: (id: string) => void;
   onToggle: (id: string) => void;
   onEnter: (id: string) => void;
-  onPorts: (id: string) => void;
   connectable: readonly Item[];
   onConnect: (source: string, target: string) => void;
   onReparent: (id: string, parent: string | null) => void;
@@ -92,7 +91,7 @@ export function Inspector(props: Props) {
             </div>
             {selected.length === 1 && (
               <>
-                {node.kind === "node" && (
+                {(node.kind === "node" || isSubgraph(node)) && (
                   <label className="field">
                     노드 유형
                     <select
@@ -131,7 +130,6 @@ export function Inspector(props: Props) {
                     onToggle={props.onToggle}
                     onUngroup={props.onUngroup}
                     onEnter={props.onEnter}
-                    onPorts={props.onPorts}
                   />
                 )}
                 <div className="divider" />

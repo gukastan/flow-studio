@@ -15,12 +15,17 @@ type Props = {
 };
 export function SubgraphCard({ item, boundary, onEnter, settings, onSetting }: Props) {
   const ports = boundary ? (item.ports ?? []) : endpointPorts(item);
+  const shapeName = {
+    process: "프로세스",
+    decision: "조건 / 분기",
+    terminal: "시작 / 종료",
+  }[item.shape];
   return (
     <>
       <div className="card-header subgraph-header">
         <div className="node-meta">
           {boundary ? <ArrowDownToLine size={14} /> : <Network size={14} />}
-          <span>{boundary ? "외부 연결" : "서브그래프"}</span>
+          <span>{boundary ? "외부 연결" : `서브그래프 · ${shapeName}`}</span>
         </div>
         <div className="node-title-row">
           <span className="subgraph-name" title={item.label}>

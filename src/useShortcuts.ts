@@ -6,6 +6,7 @@ type Actions = {
   readonly redo: () => void;
   readonly save: () => void;
   readonly group: () => void;
+  readonly subgraph: () => void;
   readonly selectAll: () => void;
   readonly remove: () => void;
   readonly escape: () => void;
@@ -23,9 +24,17 @@ export function useShortcuts(actions: Actions) {
       } else if (modifier && key === "s") {
         event.preventDefault();
         actions.save();
-      } else if (modifier && key === "g") {
+      } else if (
+        (event.metaKey || event.ctrlKey) &&
+        key === "g" &&
+        !event.altKey &&
+        !event.shiftKey
+      ) {
         event.preventDefault();
-        if (!event.repeat) actions.group();
+        if (!event.repeat) {
+          if (event.ctrlKey) actions.subgraph();
+          else actions.group();
+        }
       } else if (modifier && key === "a") {
         event.preventDefault();
         actions.selectAll();

@@ -35,6 +35,10 @@ describe("grouping toggle", () => {
     // Then
     expect(result).toBe(starter);
   });
+  it("keeps a selected subgraph intact when ordinary grouping is requested", () => {
+    const converted = convertToSubgraph(starter, ["g"]);
+    expect(groupSelection(converted, ["g"])).toBe(converted);
+  });
 });
 
 describe("subgraph conversion", () => {
@@ -87,6 +91,11 @@ describe("subgraph conversion", () => {
     expect(reopened).toEqual(converted);
     expect(reopened.nodes.find((n) => n.id === "a")?.parent).toBeTruthy();
     expect(reopened.edges).toEqual(starter.edges);
+  });
+  it("preserves a single node's type on its new subgraph card", () => {
+    const converted = convertToSubgraph(starter, ["a"]);
+    const wrapper = converted.nodes.find((node) => node.subgraph);
+    expect(wrapper?.shape).toBe("terminal");
   });
   it("does nothing when an already collapsed subgraph is converted again", () => {
     // Given

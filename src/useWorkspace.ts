@@ -6,9 +6,9 @@ import type { FlowNode } from "./CanvasNode";
 import { connectNodes } from "./connections";
 import type { SettingChange } from "./exposedSettings";
 import { updateSettingValue } from "./exposedSettings";
-import { convertToSubgraph, groupSelection, removeItems, selectionRoots } from "./graph";
+import { convertToSubgraph, groupSelection, removeItems, selectionRoots, ungroup } from "./graph";
 import type { Document, Item, Link, Point } from "./model";
-import { DocumentError } from "./model";
+import { DocumentError, isSubgraph } from "./model";
 import { createPlacedNode } from "./placement";
 import { scopeDocument } from "./scopeGraph";
 import { useCanvasView } from "./useCanvasView";
@@ -101,6 +101,11 @@ export function useWorkspace() {
     setEdgeId(null);
   }, [commit, edgeIds, selected, setEdgeId]);
   const group = useCallback(() => {
+    const roots = selectionRoots(doc, selected);
+    if (roots.length === 1 && isSubgraph(roots[0])) {
+      setNotice("서브그래프 풀기는 Ctrl+G를 사용하세요.");
+      return;
+    }
     const next = groupSelection(doc, selected);
     if (next === doc) {
       setNotice("같은 그룹에 속한 노드들을 선택해 주세요. 중첩 그룹도 함께 묶을 수 있습니다.");
@@ -114,6 +119,13 @@ export function useWorkspace() {
     );
   }, [commit, doc, selected]);
   function subgraph() {
+    const roots = selectionRoots(doc, selected);
+    const existing = roots.length === 1 && isSubgraph(roots[0]) ? roots[0] : undefined;
+    if (existing) {
+      commit(ungroup(doc, existing.id));
+      select(doc.nodes.filter((n) => n.parent === existing.id).map((n) => n.id));
+      return;
+    }
     const next = convertToSubgraph(doc, selected);
     if (next === doc) {
       const groupWire =
@@ -163,6 +175,7 @@ export function useWorkspace() {
     redo,
     save: files.save,
     group,
+    subgraph,
     remove,
     selectAll: () => select(viewDoc.nodes.map((n) => n.id)),
     escape: () => {

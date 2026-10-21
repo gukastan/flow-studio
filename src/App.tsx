@@ -73,6 +73,7 @@ export function App() {
         onLoad={() => file.current?.click()}
         onAdd={() => addNode()}
         onGroup={group}
+        onSubgraph={workspace.subgraph}
         onActions={(point) =>
           menu.open({
             point,
@@ -186,10 +187,12 @@ export function App() {
             onEdgePatch={edgePatch}
             onDelete={remove}
             onGroup={group}
-            onUngroup={group}
+            onUngroup={(id) => {
+              if (isSubgraph(doc.nodes.find((n) => n.id === id))) workspace.subgraph();
+              else group();
+            }}
             onToggle={toggle}
             onEnter={navigation.navigate}
-            onPorts={workspace.openPorts}
             connectable={workspace.viewDoc.nodes}
             onConnect={connect}
             onReparent={(id, parent) =>

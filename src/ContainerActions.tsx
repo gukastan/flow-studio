@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, Expand, SlidersHorizontal, Ungroup } from "lucide-react";
+import { ChevronDown, ChevronRight, Expand, Ungroup } from "lucide-react";
 import type { Item } from "./model";
 import { isSubgraph } from "./model";
 
@@ -7,20 +7,14 @@ type Props = {
   readonly onToggle: (id: string) => void;
   readonly onUngroup: (id: string) => void;
   readonly onEnter: (id: string) => void;
-  readonly onPorts: (id: string) => void;
 };
-export function ContainerActions({ node, onToggle, onUngroup, onEnter, onPorts }: Props) {
+export function ContainerActions({ node, onToggle, onUngroup, onEnter }: Props) {
   return (
     <div className="button-stack">
       {isSubgraph(node) ? (
-        <>
-          <button type="button" onClick={() => onEnter(node.id)}>
-            <Expand size={16} /> 내부 편집
-          </button>
-          <button type="button" onClick={() => onPorts(node.id)}>
-            <SlidersHorizontal size={16} /> 입력·출력 편집
-          </button>
-        </>
+        <button type="button" onClick={() => onEnter(node.id)}>
+          <Expand size={16} /> 내부 편집
+        </button>
       ) : (
         <button type="button" onClick={() => onToggle(node.id)}>
           {node.collapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}

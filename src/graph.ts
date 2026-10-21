@@ -30,7 +30,7 @@ export function groupSelection(doc: Document, ids: readonly string[]): Document 
   const selected = selectionRoots(doc, ids);
   if (!selected.length) return doc;
   const single = selected.length === 1 ? selected[0] : undefined;
-  if (single?.kind === "group") return ungroup(doc, single.id);
+  if (single?.kind === "group") return isSubgraph(single) ? doc : ungroup(doc, single.id);
   if (doc.nodes.length >= 1000) return doc;
   const parent = selected[0]?.parent ?? null;
   if (selected.some((n) => n.parent !== parent)) return doc;
@@ -83,6 +83,7 @@ export function convertToSubgraph(doc: Document, ids: readonly string[]): Docume
               ...n,
               subgraph: true,
               collapsed: true,
+              shape: existing?.shape ?? single?.shape ?? "process",
               label: existing?.label ?? single?.label ?? "새 서브그래프",
               ports: [],
             }

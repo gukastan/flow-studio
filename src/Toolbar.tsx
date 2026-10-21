@@ -33,6 +33,7 @@ type Props = {
   onLoad: () => void;
   onAdd: () => void;
   onGroup: () => void;
+  onSubgraph: () => void;
   canAlign: boolean;
   canDistribute: boolean;
   onAlign: (direction: Alignment) => void;
@@ -115,11 +116,20 @@ export function Toolbar(p: Props) {
         <button
           type="button"
           onClick={p.onGroup}
-          disabled={!p.selectedCount}
-          title="그룹화 / 해제 · ⌘G / Ctrl+G"
+          disabled={!p.selectedCount || p.isSubgraph}
+          title="그룹화 / 해제 · ⌘G"
         >
           {p.isGroup ? <Ungroup size={17} /> : <Group size={17} />}
-          {p.isSubgraph ? "서브그래프 풀기" : p.isGroup ? "그룹 해제" : "그룹화"}
+          {p.isGroup && !p.isSubgraph ? "그룹 해제" : "그룹화"}
+        </button>
+        <button
+          type="button"
+          onClick={p.onSubgraph}
+          disabled={!p.selectedCount}
+          title="서브그래프로 변환 / 해제 · Ctrl+G"
+        >
+          <Workflow size={17} />
+          {p.isSubgraph ? "서브그래프 풀기" : "서브그래프로 변환"}
         </button>
         <button
           type="button"
