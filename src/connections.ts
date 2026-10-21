@@ -102,3 +102,35 @@ export function connectNodes(
     ],
   });
 }
+
+export function reconnectTargets(
+  doc: Document,
+  edgeIds: ReadonlySet<string>,
+  target: string,
+  targetHandle: string | null,
+  scope: string | null,
+): Document {
+  if (!doc.edges.some((edge) => edgeIds.has(edge.id)))
+    throw new DocumentError("옮길 연결을 찾을 수 없습니다.");
+  if (scope && [boundaryId(doc, scope, "input"), boundaryId(doc, scope, "output")].includes(target))
+    throw new DocumentError("상위 화면에서 서브그래프 카드와 연결하면 내부에 자동 반영됩니다.");
+  const to = endpoint(doc, { nodeId: target, handle: targetHandle, direction: "input" });
+  const changed = doc.edges.map((edge) =>
+    edgeIds.has(edge.id)
+      ? {
+          ...edge,
+          target: to.nodeId,
+          targetSide: to.side === "left" ? undefined : to.side,
+        }
+      : edge,
+  );
+  if (
+    changed.every(
+      (edge, index) =>
+        edge.target === doc.edges[index]?.target &&
+        edge.targetSide === doc.edges[index]?.targetSide,
+    )
+  )
+    return doc;
+  return reconcileSubgraphs({ ...doc, edges: changed });
+}

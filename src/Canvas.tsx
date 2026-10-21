@@ -10,6 +10,7 @@ import {
   SelectionMode,
 } from "@xyflow/react";
 import type { MouseEvent as ReactMouseEvent, ReactNode } from "react";
+import { useRef } from "react";
 import type { FlowNode } from "./CanvasNode";
 import { CanvasNode } from "./CanvasNode";
 import type { MenuRequest, MenuTarget } from "./ContextMenu";
@@ -40,6 +41,8 @@ type Props = {
   onRename: (id: string, label: string) => void;
   onToggle: (id: string) => void;
   onConnect: (connection: Connection) => void;
+  onReconnectTarget: (edgeId: string, target: string, targetHandle: string | null) => void;
+  onDisconnectTarget: (edgeId: string) => void;
   onMove: (positions: ReadonlyMap<string, Point>) => void;
   onDragStart: () => void;
   onDragEnd: () => void;
@@ -49,6 +52,7 @@ type Props = {
   onFile: (file: File) => void;
 };
 export function Canvas(props: Props) {
+  const reconnectStart = useRef<{ id: string; x: number; y: number } | null>(null);
   const fileDrop = useFileDrop(props.onFile);
   const { doc, selected, onSelect, onMove } = props;
   const { nodes, edges, boundaries, onMeasurements } = useCanvasGraph(props);
@@ -96,7 +100,7 @@ export function Canvas(props: Props) {
   }
   return (
     <main
-      className="canvas-region"
+      className={`canvas-region${props.edgeIds.length ? " is-edge-selected" : ""}`}
       aria-label="흐름도 편집 캔버스"
       tabIndex={-1}
       onDragOver={fileDrop.onDragOver}
@@ -149,6 +153,26 @@ export function Canvas(props: Props) {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={props.onConnect}
+        onReconnectStart={(event, edge) => {
+          reconnectStart.current = { id: edge.id, x: event.clientX, y: event.clientY };
+        }}
+        onReconnect={(edge, connection) => {
+          props.onReconnectTarget(edge.id, connection.target, connection.targetHandle);
+        }}
+        onReconnectEnd={(event, edge, _handleType, connectionState) => {
+          const start = reconnectStart.current;
+          reconnectStart.current = null;
+          const pointer = "changedTouches" in event ? event.changedTouches[0] : event;
+          if (
+            start?.id === edge.id &&
+            pointer &&
+            Math.hypot(pointer.clientX - start.x, pointer.clientY - start.y) > 4 &&
+            !connectionState.toNode &&
+            !(event.target instanceof Element && event.target.closest(".react-flow__node"))
+          )
+            props.onDisconnectTarget(edge.id);
+        }}
+        reconnectRadius={34}
         connectionMode={ConnectionMode.Loose}
         connectionDragThreshold={0}
         connectionLineType={ConnectionLineType.Bezier}
@@ -199,6 +223,7 @@ export function Canvas(props: Props) {
         maxZoom={2}
         deleteKeyCode={null}
         elevateNodesOnSelect={false}
+        elevateEdgesOnSelect
         selectionOnDrag
         selectionMode={SelectionMode.Partial}
         panOnDrag={[1]}
@@ -226,7 +251,15 @@ export function Canvas(props: Props) {
         </div>
       )}
       <div className="canvas-hint">
-        드래그로 선택 <span>·</span> Space + 드래그로 이동 <span>·</span> 우클릭으로 편집
+        {props.edgeIds.length ? (
+          <>
+            화살표 끝을 드래그해 연결 이동 <span>·</span> 빈 곳에 놓으면 연결 해제
+          </>
+        ) : (
+          <>
+            드래그로 선택 <span>·</span> Space + 드래그로 이동 <span>·</span> 우클릭으로 편집
+          </>
+        )}
       </div>
     </main>
   );

@@ -150,6 +150,8 @@ export function App() {
           onRename={rename}
           onToggle={toggle}
           onConnect={(c) => connect(c.source, c.target, c)}
+          onReconnectTarget={workspace.reconnectTarget}
+          onDisconnectTarget={workspace.disconnectTarget}
           onMove={(positions) =>
             history.drag((d) => moveScopeItems(d, positions, navigation.scope?.id ?? null))
           }

@@ -3,7 +3,7 @@ import { useCallback, useRef, useState } from "react";
 import type { Alignment } from "./alignment";
 import { alignSelection, canAlign, canDistribute, distributeSelection } from "./alignment";
 import type { FlowNode } from "./CanvasNode";
-import { connectNodes } from "./connections";
+import { connectNodes, reconnectTargets } from "./connections";
 import type { SettingChange } from "./exposedSettings";
 import { updateSettingValue } from "./exposedSettings";
 import { convertToSubgraph, groupSelection, removeItems, selectionRoots, ungroup } from "./graph";
@@ -89,6 +89,29 @@ export function useWorkspace() {
       if (error instanceof DocumentError) setNotice(error.message);
       else throw error;
     }
+  }
+  function reconnectTarget(edgeId: string, target: string, targetHandle: string | null) {
+    try {
+      commit((current) =>
+        reconnectTargets(
+          current,
+          realEdgeIdsForVisible(current, navigation.scope, [edgeId]),
+          target,
+          targetHandle,
+          scope,
+        ),
+      );
+    } catch (error) {
+      if (error instanceof DocumentError) setNotice(error.message);
+      else throw error;
+    }
+  }
+  function disconnectTarget(edgeId: string) {
+    commit((current) => {
+      const removed = realEdgeIdsForVisible(current, navigation.scope, [edgeId]);
+      return { ...current, edges: current.edges.filter((edge) => !removed.has(edge.id)) };
+    });
+    setEdgeId(null);
   }
   function openPorts(id: string) {
     setPortsGroupId(id);
@@ -243,6 +266,8 @@ export function useWorkspace() {
     rename,
     toggle,
     connect,
+    reconnectTarget,
+    disconnectTarget,
     select,
     remove,
     group,

@@ -166,6 +166,9 @@
 .react-flow__edge-path {
   stroke: var(--edge);
 }
+.canvas-region.is-edge-selected .react-flow__edges {
+  z-index: 20;
+}
 .react-flow__edge.selected .react-flow__edge-path {
   stroke: var(--accent);
 }

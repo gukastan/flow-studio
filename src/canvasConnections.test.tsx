@@ -1,4 +1,4 @@
-import type { Edge, ReactFlowProps } from "@xyflow/react";
+import type { Edge, FinalConnectionState, ReactFlowProps } from "@xyflow/react";
 import { act, useState } from "react";
 import type { Root } from "react-dom/client";
 import { createRoot } from "react-dom/client";
@@ -12,7 +12,14 @@ vi.mock("@xyflow/react", async (importOriginal) => ({
   Background: () => null,
   Controls: () => null,
   MiniMap: () => null,
-  ReactFlow: ({ nodes, onNodesChange }: ReactFlowProps<FlowNode, Edge>) => (
+  ReactFlow: ({
+    nodes,
+    edges,
+    onNodesChange,
+    onReconnect,
+    onReconnectStart,
+    onReconnectEnd,
+  }: ReactFlowProps<FlowNode, Edge>) => (
     <>
       <button
         type="button"
@@ -24,6 +31,37 @@ vi.mock("@xyflow/react", async (importOriginal) => ({
         Measure rendered node
       </button>
       <output id="measured">{JSON.stringify(nodes?.find((n) => n.id === "a")?.measured)}</output>
+      <output id="reconnectable">{String(edges?.[0]?.reconnectable)}</output>
+      <button
+        type="button"
+        id="move-wire"
+        onClick={() => {
+          const edge = edges?.[0];
+          if (edge)
+            onReconnect?.(edge, {
+              source: "a",
+              sourceHandle: "out",
+              target: "c",
+              targetHandle: "in-top",
+            });
+        }}
+      >
+        Move wire
+      </button>
+      <button
+        type="button"
+        id="drop-wire"
+        onMouseDown={(event) => {
+          const edge = edges?.[0];
+          if (edge) onReconnectStart?.(event, edge, "source");
+        }}
+        onMouseUp={(event) => {
+          const edge = edges?.[0];
+          if (edge) onReconnectEnd?.(event.nativeEvent, edge, "source", emptyDrop);
+        }}
+      >
+        Drop wire
+      </button>
       <div className="react-flow__node">
         <div className="react-flow__handle" id="handle" />
       </div>
@@ -31,12 +69,29 @@ vi.mock("@xyflow/react", async (importOriginal) => ({
   ),
 }));
 
+const emptyDrop: FinalConnectionState = {
+  isValid: null,
+  from: null,
+  fromHandle: null,
+  fromPosition: null,
+  fromNode: null,
+  to: null,
+  toHandle: null,
+  toPosition: null,
+  toNode: null,
+  pointer: null,
+};
+const reconnect = vi.fn();
+const disconnect = vi.fn();
 const doc = {
   format: "flow-studio" as const,
   version: 1 as const,
   title: "Connection fixture",
-  nodes: [{ ...newNode({ x: 0, y: 0 }), id: "a" }],
-  edges: [],
+  nodes: ["a", "b", "c"].map((id, index) => ({
+    ...newNode({ x: index * 300, y: 0 }),
+    id,
+  })),
+  edges: [{ id: "wire", source: "a", target: "b", label: "", dashed: false, arrow: true }],
 };
 function Harness() {
   const [edgeIds, setEdgeIds] = useState<string[]>(["wire"]);
@@ -57,6 +112,8 @@ function Harness() {
       onRename={vi.fn()}
       onToggle={vi.fn()}
       onConnect={vi.fn()}
+      onReconnectTarget={reconnect}
+      onDisconnectTarget={disconnect}
       onMove={vi.fn()}
       onDragStart={vi.fn()}
       onDragEnd={vi.fn()}
@@ -74,6 +131,8 @@ function Harness() {
 
 let root: Root;
 beforeEach(() => {
+  reconnect.mockClear();
+  disconnect.mockClear();
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   const container = document.createElement("div");
   document.body.append(container);
@@ -96,4 +155,26 @@ it("retains measured node dimensions when pointer-down clears a wire selection",
   expect(document.getElementById("measured")?.textContent).toBe('{"width":224,"height":88}');
   act(() => document.getElementById("rerender")?.click());
   expect(document.getElementById("measured")?.textContent).toBe('{"width":224,"height":88}');
+});
+
+it("moves only the selected wire's target when React Flow reconnects its arrow end", () => {
+  expect(document.getElementById("reconnectable")?.textContent).toBe("target");
+  act(() => document.getElementById("move-wire")?.click());
+  expect(reconnect).toHaveBeenCalledWith("wire", "c", "in-top");
+});
+
+it("disconnects after dragging the arrow end to empty space, but not after a click", () => {
+  const button = document.getElementById("drop-wire");
+  if (!button) throw new Error("Missing drop control");
+  act(() => {
+    button.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, clientX: 10, clientY: 10 }));
+    button.dispatchEvent(new MouseEvent("mouseup", { bubbles: true, clientX: 10, clientY: 10 }));
+  });
+  expect(disconnect).not.toHaveBeenCalled();
+  act(() => {
+    button.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, clientX: 10, clientY: 10 }));
+    button.dispatchEvent(new MouseEvent("mouseup", { bubbles: true, clientX: 100, clientY: 10 }));
+  });
+  expect(disconnect).toHaveBeenCalledOnce();
+  expect(disconnect).toHaveBeenCalledWith("wire");
 });

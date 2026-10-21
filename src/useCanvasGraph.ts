@@ -95,6 +95,7 @@ export function useCanvasGraph(options: Options) {
     target: edge.target,
     sourceHandle: edge.sourceHandle,
     targetHandle: edge.targetHandle,
+    reconnectable: selectedEdges.has(edge.id) ? "target" : false,
     label: edge.label,
     type: "flow",
     data: {
