@@ -49,9 +49,6 @@
   font-size: 9px;
   letter-spacing: 0.3px;
 }
-.app[data-theme="light"] .node-meta {
-  color: color-mix(in srgb, var(--node-color) 45%, #0f172a);
-}
 .selection-check {
   margin-inline-start: auto;
   color: var(--muted);
@@ -140,6 +137,9 @@
 }
 .group-frame .node-meta {
   order: 2;
+}
+.app[data-theme="light"] .node-meta {
+  color: color-mix(in srgb, var(--node-color) 45%, #0f172a);
 }
 .group-frame .node-meta .selection-check {
   display: none;
